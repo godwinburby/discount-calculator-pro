@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Discount Calculator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles for aesthetics and mobile feel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .container-card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .input-field {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Discount Calculator Pro</h1>
+            <p class="text-gray-500">Manage multiple products and complex discounts easily.</p>
+        </header>
+
+        <main class="bg-white p-6 rounded-xl container-card space-y-6">
+
+            <!-- Product List Area -->
+            <div id="product-list" class="space-y-4">
+                <h2 class="text-xl font-semibold border-b pb-2 text-gray-700">Products</h2>
+                <!-- Product rows will be inserted here -->
+            </div>
+
+            <!-- Action Button: DIRECT BINDING for reliability -->
+            <button id="add-product-btn" onclick="addProduct()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200 shadow-md">
+                + Add New Product
+            </button>
+
+            <!-- Totals Summary Area -->
+            <div id="totals-summary" class="pt-6 border-t border-gray-200 mt-6">
+                <h2 class="text-xl font-semibold mb-3 text-gray-700">Summary</h2>
+                <div class="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between text-base">
+                        <span class="text-gray-600">Total Subtotal:</span>
+                        <span id="total-subtotal" class="font-medium text-gray-800">₹0.00</span>
+                    </div>
+                    <div class="flex justify-between text-base">
+                        <span class="text-gray-600">Total Discount:</span>
+                        <span id="total-discount" class="font-medium text-red-500">-₹0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xl font-bold pt-2 border-t border-gray-200">
+                        <span class="text-gray-800">Grand Total:</span>
+                        <span id="grand-total" class="text-indigo-600">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons Container -->
+            <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                
+                <!-- WhatsApp Share Button -->
+                <button id="share-whatsapp-btn" onclick="shareToWhatsapp()" class="w-full sm:w-1/2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg flex items-center justify-center space-x-2">
+                    <!-- WhatsApp Icon (inline SVG for portability) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-white">
+                        <path d="M12.03 2.01c-5.5 0-9.98 4.48-9.98 9.98 0 1.94.57 3.82 1.63 5.42l-1.63 5.96 6.13-1.6c1.55.84 3.32 1.28 5.12 1.28 5.5 0 9.98-4.48 9.98-9.98s-4.48-9.98-9.98-9.98zm4.73 13.92c-.22.56-.99.93-1.42 1.05-.4.11-.84.17-1.29.17-1.35 0-2.65-.5-3.64-1.32-.98-.82-1.74-2.13-1.74-3.48 0-.91.24-1.66.7-2.31.47-.64 1.15-1.07 1.94-1.25.79-.18 1.63-.08 2.37.52.75.6 1.17 1.48 1.17 2.44 0 .22-.04.42-.1.62-.07.2-.18.39-.34.56-.16.17-.35.3-.56.4-.2.11-.42.17-.65.17-.03 0-.05 0-.08 0l-.13-.02c-.52-.08-1.03-.3-1.5-.66-.47-.36-.88-.84-1.23-1.44-.06-.11-.11-.23-.15-.36-.04-.13-.05-.26-.05-.4 0-.32.13-.62.36-.85.23-.23.53-.36.85-.36.24 0 .47.05.69.15.22.1.42.25.58.44.17.2.26.43.26.69 0 .16-.03.32-.08.47-.05.15-.12.29-.2.43-.19.3-.43.56-.7.77l-.02.02c.48.37 1.03.66 1.62.86.6.2 1.24.29 1.9.29.13 0 .26-.01.39-.03.74-.12 1.34-.5 1.8-1.14.47-.64.7-1.4.7-2.28 0-.82-.26-1.5-.77-2.04-.51-.55-1.22-.84-2.12-.84h-1.5c-.32 0-.62-.13-.85-.36-.23-.23-.36-.53-.36-.85 0-.32.13-.62.36-.85.23-.23.53-.36.85-.36h1.5c.9 0 1.76.27 2.47.81.71.54 1.1 1.25 1.1 2.08 0 .5-.08.98-.24 1.44-.16.46-.37.88-.63 1.26z"/>
+                    </svg>
+                    <span>Share via WhatsApp</span>
+                </button>
+
+                <!-- Copy Text Button (NEW) -->
+                <button id="copy-quote-btn" onclick="copyToClipboard()" class="w-full sm:w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg flex items-center justify-center space-x-2">
+                    <!-- Copy Icon (inline SVG) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zm4 0v4a1 1 0 01-1 1H9a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zm4 0v4a1 1 0 01-1 1h-3a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zM7 16h10" />
+                    </svg>
+                    <span>Copy Price Quote</span>
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Global variables provided by the canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Product state array
+        let products = [];
+        let nextProductId = 1;
+
+        const productListEl = document.getElementById('product-list');
+        const totalSubtotalEl = document.getElementById('total-subtotal');
+        const totalDiscountEl = document.getElementById('total-discount');
+        const grandTotalEl = document.getElementById('grand-total');
+
+        /**
+         * Helper to get the correct placeholder based on discount type.
+         */
+        function getPlaceholder(type) {
+            switch (type) {
+                case 'percentage': return 'Discount % (e.g., 10)';
+                case 'amount': return 'Discount Amount (₹)';
+                case 'final': return 'Discounted Final Price (₹)';
+                default: return 'Enter value';
+            }
+        }
+
+        /**
+         * Generates the HTML string for a single product row.
+         */
+        function renderProductRow(product) {
+            const { id, name, unitPrice, units, discountType, discountValue, subtotal, discountedPrice, discountAmount, discountPercentage } = product;
+
+            return `
+                <div id="product-${id}" class="product-row bg-white p-4 border border-gray-200 rounded-xl shadow-sm space-y-3">
+                    
+                    <!-- Product Name and Remove Button -->
+                    <div class="flex justify-between items-center">
+                        <input
+                            type="text"
+                            placeholder="Product Name (e.g., Laptop)"
+                            value="${name}"
+                            data-id="${id}"
+                            data-field="name"
+                            class="input-field text-lg font-semibold w-full mr-2"
+                            oninput="handleInput(event)"
+                        />
+                        <button
+                            data-id="${id}"
+                            class="remove-product-btn text-red-500 hover:text-red-700 p-2 rounded-full transition duration-150"
+                            aria-label="Remove Product"
+                            onclick="removeProduct(${id})"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Price and Units Inputs -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block">
+                            <span class="text-xs font-medium text-gray-500">Unit Price (₹)</span>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value="${unitPrice}"
+                                data-id="${id}"
+                                data-field="unitPrice"
+                                class="input-field w-full"
+                                oninput="handleInput(event)"
+                            />
+                        </label>
+                        <label class="block">
+                            <span class="text-xs font-medium text-gray-500">Units</span>
+                            <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value="${units}"
+                                data-id="${id}"
+                                data-field="units"
+                                class="input-field w-full"
+                                oninput="handleInput(event)"
+                            />
+                        </label>
+                    </div>
+
+                    <!-- Subtotal Display (TARGETED UPDATE) -->
+                    <div class="text-right text-sm font-medium pt-1">
+                        Subtotal: <span class="text-indigo-500 font-semibold" id="subtotal-display-${id}">₹${subtotal.toFixed(2)}</span>
+                    </div>
+
+                    <!-- Discount Type Selector and Value Input -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <!-- Discount Type Selector -->
+                        <div class="col-span-1">
+                            <select
+                                data-id="${id}"
+                                data-field="discountType"
+                                class="input-field w-full bg-white text-sm"
+                                onchange="handleInput(event)"
+                            >
+                                <option value="percentage" ${discountType === 'percentage' ? 'selected' : ''}>% Discount</option>
+                                <option value="amount" ${discountType === 'amount' ? 'selected' : ''}>₹ Amount</option>
+                                <option value="final" ${discountType === 'final' ? 'selected' : ''}>Final Price</option>
+                            </select>
+                        </div>
+
+                        <!-- Discount Value Input -->
+                        <div class="col-span-2">
+                            <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                value="${discountValue}"
+                                data-id="${id}"
+                                data-field="discountValue"
+                                class="input-field w-full text-sm"
+                                placeholder="${getPlaceholder(discountType)}"
+                                oninput="handleInput(event)"
+                                ${discountType === 'none' ? 'disabled' : ''}
+                            />
+                        </div>
+                    </div>
+                    
+                    <!-- Discount Details Display -->
+                    <div class="grid grid-cols-2 gap-3 mt-1 text-sm text-gray-600 border-t pt-2 border-dashed">
+                        <div class="text-left">
+                            Discount Amount: <span id="discount-amount-display-${id}" class="font-semibold text-red-600">₹${discountAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="text-right">
+                            Discount %: <span id="discount-percent-display-${id}" class="font-semibold text-red-600">${discountPercentage.toFixed(2)}%</span>
+                        </div>
+                    </div>
+
+                    <!-- Discounted Price Display (TARGETED UPDATE) -->
+                    <div class="text-right text-lg font-bold pt-2 border-t">
+                        Final Price: <span class="text-green-600" id="final-price-display-${id}">₹${discountedPrice.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Updates only the display elements for a specific product row.
+         */
+        function updateProductDisplay(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            const format = (value) => value.toFixed(2);
+
+            // Guard against null elements if DOM hasn't fully updated
+            const subtotalEl = document.getElementById(`subtotal-display-${id}`);
+            if (subtotalEl) subtotalEl.textContent = `₹${format(product.subtotal)}`;
+            
+            const discountAmountEl = document.getElementById(`discount-amount-display-${id}`);
+            if (discountAmountEl) discountAmountEl.textContent = `₹${format(product.discountAmount)}`;
+            
+            const discountPercentEl = document.getElementById(`discount-percent-display-${id}`);
+            if (discountPercentEl) discountPercentEl.textContent = `${format(product.discountPercentage)}%`;
+            
+            const finalPriceEl = document.getElementById(`final-price-display-${id}`);
+            if (finalPriceEl) finalPriceEl.textContent = `₹${format(product.discountedPrice)}`;
+        }
+
+
+        /**
+         * Calculates the subtotal, discount, and final discounted price for a single product.
+         */
+        function calculateProductTotal(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            // 1. Calculate Subtotal
+            product.unitPrice = parseFloat(product.unitPrice) || 0;
+            product.units = parseInt(product.units) || 0;
+            
+            product.subtotal = product.unitPrice * product.units;
+            let finalPrice = product.subtotal;
+            product.discountAmount = 0;
+
+            // 2. Apply Discount Logic
+            const discValue = parseFloat(product.discountValue) || 0;
+            const subtotal = product.subtotal;
+
+            switch (product.discountType) {
+                case 'percentage':
+                    if (discValue > 0) {
+                        const discount = (subtotal * (discValue / 100));
+                        product.discountAmount = Math.min(discount, subtotal);
+                        finalPrice = subtotal - product.discountAmount;
+                    }
+                    break;
+                case 'amount':
+                    product.discountAmount = Math.min(discValue, subtotal);
+                    finalPrice = subtotal - product.discountAmount;
+                    break;
+                case 'final':
+                    finalPrice = Math.max(0, Math.min(discValue, subtotal));
+                    product.discountAmount = subtotal - finalPrice;
+                    break;
+            }
+
+            product.discountedPrice = finalPrice;
+            
+            // 3. Calculate Effective Discount Percentage
+            if (product.subtotal > 0) {
+                product.discountPercentage = (product.discountAmount / product.subtotal) * 100;
+            } else {
+                product.discountPercentage = 0;
+            }
+
+            // Update display elements without re-rendering inputs
+            updateProductDisplay(id);
+            updateGrandTotals();
+        }
+
+        /**
+         * Calculates and updates the overall totals summary.
+         * @returns {{totalSubtotal: number, totalDiscount: number, grandTotal: number}} The calculated totals.
+         */
+        function updateGrandTotals() {
+            let totalSubtotal = 0;
+            let totalDiscount = 0;
+            let grandTotal = 0;
+
+            for (const product of products) {
+                totalSubtotal += product.subtotal;
+                totalDiscount += product.discountAmount;
+                grandTotal += product.discountedPrice;
+            }
+
+            // Update DOM elements
+            const format = (value) => `₹${value.toFixed(2)}`;
+            totalSubtotalEl.textContent = format(totalSubtotal);
+            totalDiscountEl.textContent = `-${format(totalDiscount)}`;
+            grandTotalEl.textContent = format(grandTotal);
+
+            return { totalSubtotal, totalDiscount, grandTotal };
+        }
+        
+        /**
+         * Generates the summary text with WhatsApp/Markdown formatting (bold/italics).
+         */
+        function generateWhatsappSummaryText() {
+            const totals = updateGrandTotals(); 
+
+            const productDetails = products.map((product, index) => {
+                const formatPrice = (value) => value.toFixed(2);
+                const formatPercent = (value) => value.toFixed(2);
+
+                return `
+${index + 1}. *${product.name || 'Untitled Product'}*
+    Unit Price: ₹${formatPrice(product.unitPrice)}
+    Units: ${product.units}
+    Subtotal: ₹${formatPrice(product.subtotal)}
+    _Discount Applied:_
+    Amount: *-₹${formatPrice(product.discountAmount)}*
+    Percentage: *${formatPercent(product.discountPercentage)}%*
+    *Final Price: ₹${formatPrice(product.discountedPrice)}*`;
+            }).join('\n');
+
+            const summary = `
+*💰 PRICE QUOTE SUMMARY*
+_Prepared using Discount Calculator Pro_
+
+*--- PRODUCT DETAILS ---*
+${productDetails}
+
+*--- GRAND TOTAL ---*
+
+Total Subtotal: *₹${totals.totalSubtotal.toFixed(2)}*
+Total Savings: *-₹${totals.totalDiscount.toFixed(2)}*
+*NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}*`;
+
+            return summary.trim();
+        }
+
+        /**
+         * Generates the summary text in PLAIN TEXT format (no markdown).
+         */
+        function generatePlainTextQuote() {
+            const totals = updateGrandTotals(); 
+
+            const productDetails = products.map((product, index) => {
+                const formatPrice = (value) => value.toFixed(2);
+                const formatPercent = (value) => value.toFixed(2);
+
+                return `
+${index + 1}. ${product.name || 'Untitled Product'}
+    Unit Price: ₹${formatPrice(product.unitPrice)}
+    Units: ${product.units}
+    Subtotal: ₹${formatPrice(product.subtotal)}
+    Discount Applied:
+    Amount: -₹${formatPrice(product.discountAmount)}
+    Percentage: ${formatPercent(product.discountPercentage)}%
+    Final Price: ₹${formatPrice(product.discountedPrice)}`;
+            }).join('\n');
+
+            const summary = `
+PRICE QUOTE SUMMARY
+Prepared using Discount Calculator Pro
+
+--- PRODUCT DETAILS ---
+${productDetails}
+
+--- GRAND TOTAL ---
+
+Total Subtotal: ₹${totals.totalSubtotal.toFixed(2)}
+Total Savings: -₹${totals.totalDiscount.toFixed(2)}
+NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
+
+            return summary.trim();
+        }
+
+
+        /**
+         * Opens the WhatsApp sharing link with the generated summary text.
+         */
+        function shareToWhatsapp() {
+            // Uses the formatted text with markdown
+            const summaryText = generateWhatsappSummaryText(); 
+            // URL encode the text for the query parameter
+            const encodedText = encodeURIComponent(summaryText);
+            
+            // Standard WhatsApp share link
+            const whatsappUrl = `https://wa.me/?text=${encodedText}`;
+
+            window.open(whatsappUrl, '_blank');
+        }
+
+        /**
+         * Copies the generated summary text to the clipboard.
+         */
+        function copyToClipboard() {
+            // Uses the clean, plain text summary
+            const summaryText = generatePlainTextQuote();
+            const copyButton = document.getElementById('copy-quote-btn');
+            const buttonSpan = copyButton.querySelector('span');
+
+            // 1. Create a temporary textarea element
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = summaryText;
+            
+            // Set styles to make it invisible and non-disruptive
+            tempTextArea.style.position = 'fixed';
+            tempTextArea.style.top = '0';
+            tempTextArea.style.left = '0';
+            tempTextArea.style.opacity = '0';
+            
+            document.body.appendChild(tempTextArea);
+            tempTextArea.focus();
+            tempTextArea.select();
+
+            let successful = false;
+            try {
+                // 2. Execute the copy command (using document.execCommand for iframe compatibility)
+                successful = document.execCommand('copy');
+            } catch (err) {
+                console.error('Copy command failed:', err);
+            }
+
+            // 3. Clean up and provide feedback
+            document.body.removeChild(tempTextArea);
+            
+            if (successful) {
+                const originalText = buttonSpan.textContent;
+                
+                // Change icon and text for visual feedback
+                copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> <span>Copied!</span>`;
+                copyButton.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                copyButton.classList.add('bg-blue-500', 'hover:bg-blue-600'); 
+
+                // Revert after 2 seconds
+                setTimeout(() => {
+                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zm4 0v4a1 1 0 01-1 1H9a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zm4 0v4a1 1 0 01-1 1h-3a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zM7 16h10" /></svg> <span>Copy Price Quote</span>`;
+                    copyButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                    copyButton.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                }, 2000);
+            } else {
+                // Fallback warning for users if the copy fails
+                console.warn('Unable to automatically copy text. Please select and copy manually.');
+            }
+        }
+
+
+        /**
+         * Re-renders the entire product list (ONLY used on ADD or REMOVE product or discount type change).
+         */
+        function updateUI() {
+            productListEl.innerHTML = products.map(renderProductRow).join('');
+            updateGrandTotals();
+        }
+
+        /**
+         * Centralized handler for all product input changes.
+         */
+        function handleInput(event) {
+            const input = event.target;
+            const id = parseInt(input.dataset.id);
+            const field = input.dataset.field;
+            const product = products.find(p => p.id === id);
+
+            if (!product) return;
+
+            let value = input.value;
+
+            // Update product data based on field type
+            if (field === 'name') {
+                product[field] = value;
+            } else if (field === 'discountType') {
+                // When discount type changes, reset the discount value and force a full UI update
+                product.discountValue = 0;
+                product.discountType = value;
+                updateUI();
+                return;
+            } else {
+                // Numeric fields
+                product[field] = parseFloat(value) || 0;
+            }
+
+            // Recalculate totals and update display elements (without destroying focus)
+            calculateProductTotal(id);
+        }
+
+        /**
+         * Adds a new product row to the list.
+         */
+        function addProduct() {
+            const newProduct = {
+                id: nextProductId++,
+                name: `Product ${nextProductId-1}`,
+                unitPrice: 1000.00,
+                units: 1,
+                discountType: 'percentage',
+                discountValue: 0,
+                subtotal: 0,
+                discountAmount: 0,
+                discountPercentage: 0,
+                discountedPrice: 0,
+            };
+            products.push(newProduct);
+            calculateProductTotal(newProduct.id);
+            updateUI();
+            
+            // Scroll to the newly added product
+            const newProductEl = document.getElementById(`product-${newProduct.id}`);
+            if (newProductEl) {
+                newProductEl.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        /**
+         * Removes a product row from the list.
+         */
+        function removeProduct(id) {
+            products = products.filter(p => p.id !== id);
+            updateUI();
+        }
+
+        // --- Initialization ---
+        // Run initialization logic immediately to ensure state is set up.
+        if (products.length === 0) {
+             addProduct();
+        }
+    </script>
+</body>
+</html>
