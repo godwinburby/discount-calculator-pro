@@ -31,9 +31,9 @@
         /* Desktop-specific styles for product row to enable tabular view */
         @media (min-width: 768px) {
             .product-row-desktop-grid {
-                /* Define the main grid for the product row on desktop */
+                /* NEW 5 columns: Name, Price, Units, Discount Setup, Remove Btn */
                 display: grid;
-                grid-template-columns: 2fr 1fr 1fr 2fr 1.5fr auto; /* 6 columns: Name, Price, Units, Discount Setup, Final Price, Remove Btn */
+                grid-template-columns: 2fr 1fr 1fr 2fr auto; 
                 align-items: center;
                 gap: 1rem;
                 padding: 1rem 1.5rem;
@@ -54,13 +54,12 @@
 
         <main class="bg-white p-6 rounded-xl container-card space-y-6">
 
-            <!-- Product List Header (Desktop Only) -->
-            <div class="hidden md:grid md:grid-cols-[2fr_1fr_1fr_2fr_1.5fr_auto] gap-4 mb-2 p-4 border-b border-gray-300 font-semibold text-gray-600">
+            <!-- Product List Header (Desktop Only - 5 Columns) -->
+            <div class="hidden md:grid md:grid-cols-[2fr_1fr_1fr_2fr_auto] gap-4 mb-2 p-4 border-b border-gray-300 font-semibold text-gray-600">
                 <span>Product Name</span>
                 <span>Unit Price (₹)</span>
                 <span>Units</span>
                 <span class="text-center">Discount Setup</span>
-                <span class="text-right">Final Price</span>
                 <span class="w-6"></span> <!-- Spacer for delete button -->
             </div>
 
@@ -78,7 +77,6 @@
             <!-- Totals Summary Area -->
             <div id="totals-summary" class="pt-6 border-t border-gray-200 mt-6">
                 <h2 class="text-xl font-semibold mb-3 text-gray-700 text-center md:text-left">Summary</h2>
-                <!-- CHANGE: Replaced ml-auto with mx-auto to center the summary block on wide screens -->
                 <div class="space-y-3 p-4 bg-gray-50 rounded-lg max-w-sm mx-auto"> 
                     
                     <div class="flex justify-between text-base">
@@ -217,11 +215,6 @@
                         </label>
                     </div>
                     
-                    <!-- Mobile Subtotal Display (Mobile Only) -->
-                    <div class="text-right text-sm font-medium pt-1 md:hidden">
-                        Subtotal: <span class="text-indigo-500 font-semibold" id="subtotal-display-mobile-${id}">₹${subtotal.toFixed(2)}</span>
-                    </div>
-
                     <!-- 4. Discount Setup (Mobile Full Row, Desktop Column 4 - uses its own grid) -->
                     <div class="md:col-span-1 grid grid-cols-2 gap-3">
                         <!-- Discount Type Selector -->
@@ -255,13 +248,7 @@
                         </div>
                     </div>
 
-                    <!-- 5. Discounted Price (Mobile Full Row, Desktop Column 5) -->
-                    <div class="md:col-span-1 text-right">
-                        <span class="text-xs font-medium text-gray-500 md:hidden">Final Price:</span>
-                        <span class="text-lg font-bold text-green-600" id="final-price-display-${id}">₹${discountedPrice.toFixed(2)}</span>
-                    </div>
-
-                    <!-- 6. Remove Button (Mobile/Desktop Column 6) -->
+                    <!-- 5. Remove Button (Mobile/Desktop Column 5) -->
                     <div class="md:col-span-1 flex justify-end md:justify-center">
                         <button
                             data-id="${id}"
@@ -279,7 +266,7 @@
                     <div class="mobile-only-details md:hidden space-y-2 border-t pt-2 mt-2">
                          <div class="text-sm text-gray-600 flex justify-between">
                             <span class="font-medium">Subtotal:</span>
-                            <span class="text-indigo-500 font-semibold">₹${subtotal.toFixed(2)}</span>
+                            <span class="text-indigo-500 font-semibold" id="subtotal-display-mobile-${id}">₹${subtotal.toFixed(2)}</span>
                         </div>
                         <div class="text-sm text-gray-600 flex justify-between">
                             <span class="font-medium">Discount Amount:</span>
@@ -288,6 +275,11 @@
                         <div class="text-sm text-gray-600 flex justify-between">
                             <span class="font-medium">Discount %:</span>
                             <span id="discount-percent-display-mobile-${id}" class="font-semibold text-red-600">${discountPercentage.toFixed(2)}%</span>
+                        </div>
+                        <!-- CHANGED: Label is now "Product Final Price" -->
+                        <div class="text-lg font-bold text-green-600 flex justify-between pt-1 border-t border-gray-300">
+                            <span class="text-gray-800">Product Final Price:</span>
+                            <span id="final-price-display-${id}">₹${discountedPrice.toFixed(2)}</span>
                         </div>
                     </div>
 
@@ -314,7 +306,7 @@
             const discountPercentMobileEl = document.getElementById(`discount-percent-display-mobile-${id}`);
             if (discountPercentMobileEl) discountPercentMobileEl.textContent = `${format(product.discountPercentage)}%`;
             
-            // Update the main final price (shared between mobile/desktop)
+            // Update the final price element inside the mobile summary
             const finalPriceEl = document.getElementById(`final-price-display-${id}`);
             if (finalPriceEl) finalPriceEl.textContent = `₹${format(product.discountedPrice)}`;
         }
@@ -424,7 +416,7 @@ ${index + 1}. *${product.name || 'Untitled Product'}*
     _Discount Applied:_
     Amount: *-₹${formatPrice(product.discountAmount)}*
     Percentage: *${formatPercent(product.discountPercentage)}%*
-    *Final Price: ₹${formatPrice(product.discountedPrice)}*`;
+    *Product Final Price: ₹${formatPrice(product.discountedPrice)}*`; // Updated label
             }).join('\n');
 
             const summary = `
@@ -462,7 +454,7 @@ ${index + 1}. ${product.name || 'Untitled Product'}
     Discount Applied:
     Amount: -₹${formatPrice(product.discountAmount)}
     Percentage: ${formatPercent(product.discountPercentage)}%
-    Final Price: ₹${formatPrice(product.discountedPrice)}`;
+    Product Final Price: ₹${formatPrice(product.discountedPrice)}`; // Updated label
             }).join('\n');
 
             const summary = `
@@ -648,3 +640,4 @@ NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
     </script>
 </body>
 </html>
+
