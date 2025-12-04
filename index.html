@@ -27,21 +27,46 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
             outline: none;
         }
+
+        /* Desktop-specific styles for product row to enable tabular view */
+        @media (min-width: 768px) {
+            .product-row-desktop-grid {
+                /* Define the main grid for the product row on desktop */
+                display: grid;
+                grid-template-columns: 2fr 1fr 1fr 2fr 1.5fr auto; /* 6 columns: Name, Price, Units, Discount Setup, Final Price, Remove Btn */
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem 1.5rem;
+            }
+            .product-row .mobile-only-details {
+                display: none; /* Hide stacked details on desktop */
+            }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto"> <!-- Increased max-width slightly for better desktop experience -->
         <header class="text-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Discount Calculator Pro</h1>
-            <p class="text-gray-500">Manage multiple products and complex discounts easily.</p>
+            <p class="text-gray-500">Manage multiple products and complex discounts easily. (Responsive Layout)</p>
         </header>
 
         <main class="bg-white p-6 rounded-xl container-card space-y-6">
 
+            <!-- Product List Header (Desktop Only) -->
+            <div class="hidden md:grid md:grid-cols-[2fr_1fr_1fr_2fr_1.5fr_auto] gap-4 mb-2 p-4 border-b border-gray-300 font-semibold text-gray-600">
+                <span>Product Name</span>
+                <span>Unit Price (₹)</span>
+                <span>Units</span>
+                <span class="text-center">Discount Setup</span>
+                <span class="text-right">Final Price</span>
+                <span class="w-6"></span> <!-- Spacer for delete button -->
+            </div>
+
             <!-- Product List Area -->
             <div id="product-list" class="space-y-4">
-                <h2 class="text-xl font-semibold border-b pb-2 text-gray-700">Products</h2>
+                <h2 class="text-xl font-semibold border-b pb-2 text-gray-700 md:hidden">Products</h2>
                 <!-- Product rows will be inserted here -->
             </div>
 
@@ -53,7 +78,7 @@
             <!-- Totals Summary Area -->
             <div id="totals-summary" class="pt-6 border-t border-gray-200 mt-6">
                 <h2 class="text-xl font-semibold mb-3 text-gray-700">Summary</h2>
-                <div class="space-y-3 p-4 bg-gray-50 rounded-lg">
+                <div class="space-y-3 p-4 bg-gray-50 rounded-lg max-w-sm ml-auto"> <!-- Keeps summary section narrow on desktop -->
                     
                     <div class="flex justify-between text-base">
                         <span class="text-gray-600">Total Subtotal:</span>
@@ -115,7 +140,6 @@
         const totalSubtotalEl = document.getElementById('total-subtotal');
         const totalDiscountEl = document.getElementById('total-discount');
         const grandTotalEl = document.getElementById('grand-total');
-        // Element for overall discount percentage
         const totalDiscountPercentageEl = document.getElementById('total-discount-percentage');
 
         /**
@@ -135,37 +159,33 @@
          */
         function renderProductRow(product) {
             const { id, name, unitPrice, units, discountType, discountValue, subtotal, discountedPrice, discountAmount, discountPercentage } = product;
+            const format = (value) => value.toFixed(2);
 
             return `
-                <div id="product-${id}" class="product-row bg-white p-4 border border-gray-200 rounded-xl shadow-sm space-y-3">
+                <!-- Responsive Product Row Container -->
+                <div id="product-${id}" 
+                     class="product-row bg-white border border-gray-200 rounded-xl shadow-sm space-y-3 p-4 md:p-0 md:border-0 md:shadow-none md:space-y-0 md:border-t md:first:border-t-0 product-row-desktop-grid">
                     
-                    <!-- Product Name and Remove Button -->
-                    <div class="flex justify-between items-center">
-                        <input
-                            type="text"
-                            placeholder="Product Name (e.g., Laptop)"
-                            value="${name}"
-                            data-id="${id}"
-                            data-field="name"
-                            class="input-field text-lg font-semibold w-full mr-2"
-                            oninput="handleInput(event)"
-                        />
-                        <button
-                            data-id="${id}"
-                            class="remove-product-btn text-red-500 hover:text-red-700 p-2 rounded-full transition duration-150"
-                            aria-label="Remove Product"
-                            onclick="removeProduct(${id})"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
+                    <!-- 1. Product Name (Mobile Full Row, Desktop Column 1) -->
+                    <div class="md:col-span-1">
+                        <label class="block">
+                            <span class="text-xs font-medium text-gray-500 md:hidden">Product Name</span>
+                            <input
+                                type="text"
+                                placeholder="Product Name (e.g., Laptop)"
+                                value="${name}"
+                                data-id="${id}"
+                                data-field="name"
+                                class="input-field text-lg font-semibold w-full"
+                                oninput="handleInput(event)"
+                            />
+                        </label>
                     </div>
 
-                    <!-- Price and Units Inputs -->
-                    <div class="grid grid-cols-2 gap-3">
+                    <!-- 2. Unit Price (Mobile Column 1 of 2, Desktop Column 2) -->
+                    <div class="md:col-span-1 md:block">
                         <label class="block">
-                            <span class="text-xs font-medium text-gray-500">Unit Price (₹)</span>
+                            <span class="text-xs font-medium text-gray-500 md:hidden">Unit Price (₹)</span>
                             <input
                                 type="number"
                                 min="0"
@@ -177,8 +197,12 @@
                                 oninput="handleInput(event)"
                             />
                         </label>
+                    </div>
+
+                    <!-- 3. Units (Mobile Column 2 of 2, Desktop Column 3) -->
+                    <div class="md:col-span-1 md:block">
                         <label class="block">
-                            <span class="text-xs font-medium text-gray-500">Units</span>
+                            <span class="text-xs font-medium text-gray-500 md:hidden">Units</span>
                             <input
                                 type="number"
                                 min="1"
@@ -191,14 +215,14 @@
                             />
                         </label>
                     </div>
-
-                    <!-- Subtotal Display (TARGETED UPDATE) -->
-                    <div class="text-right text-sm font-medium pt-1">
-                        Subtotal: <span class="text-indigo-500 font-semibold" id="subtotal-display-${id}">₹${subtotal.toFixed(2)}</span>
+                    
+                    <!-- Mobile Subtotal Display (Mobile Only) -->
+                    <div class="text-right text-sm font-medium pt-1 md:hidden">
+                        Subtotal: <span class="text-indigo-500 font-semibold" id="subtotal-display-mobile-${id}">₹${subtotal.toFixed(2)}</span>
                     </div>
 
-                    <!-- Discount Type Selector and Value Input -->
-                    <div class="grid grid-cols-3 gap-3">
+                    <!-- 4. Discount Setup (Mobile Full Row, Desktop Column 4 - uses its own grid) -->
+                    <div class="md:col-span-1 grid grid-cols-2 gap-3">
                         <!-- Discount Type Selector -->
                         <div class="col-span-1">
                             <select
@@ -207,14 +231,14 @@
                                 class="input-field w-full bg-white text-sm"
                                 onchange="handleInput(event)"
                             >
-                                <option value="percentage" ${discountType === 'percentage' ? 'selected' : ''}>% Discount</option>
-                                <option value="amount" ${discountType === 'amount' ? 'selected' : ''}>₹ Amount</option>
-                                <option value="final" ${discountType === 'final' ? 'selected' : ''}>Final Price</option>
+                                <option value="percentage" ${discountType === 'percentage' ? 'selected' : ''}>% Disc</option>
+                                <option value="amount" ${discountType === 'amount' ? 'selected' : ''}>₹ Amt</option>
+                                <option value="final" ${discountType === 'final' ? 'selected' : ''}>Final ₹</option>
                             </select>
                         </div>
 
                         <!-- Discount Value Input -->
-                        <div class="col-span-2">
+                        <div class="col-span-1">
                             <input
                                 type="number"
                                 min="0"
@@ -229,21 +253,43 @@
                             />
                         </div>
                     </div>
-                    
-                    <!-- Discount Details Display -->
-                    <div class="grid grid-cols-2 gap-3 mt-1 text-sm text-gray-600 border-t pt-2 border-dashed">
-                        <div class="text-left">
-                            Discount Amount: <span id="discount-amount-display-${id}" class="font-semibold text-red-600">₹${discountAmount.toFixed(2)}</span>
+
+                    <!-- 5. Discounted Price (Mobile Full Row, Desktop Column 5) -->
+                    <div class="md:col-span-1 text-right">
+                        <span class="text-xs font-medium text-gray-500 md:hidden">Final Price:</span>
+                        <span class="text-lg font-bold text-green-600" id="final-price-display-${id}">₹${discountedPrice.toFixed(2)}</span>
+                    </div>
+
+                    <!-- 6. Remove Button (Mobile/Desktop Column 6) -->
+                    <div class="md:col-span-1 flex justify-end md:justify-center">
+                        <button
+                            data-id="${id}"
+                            class="remove-product-btn text-red-500 hover:text-red-700 p-2 rounded-full transition duration-150"
+                            aria-label="Remove Product"
+                            onclick="removeProduct(${id})"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Mobile-Only Discount Details (Hidden on Desktop) -->
+                    <div class="mobile-only-details md:hidden space-y-2 border-t pt-2 mt-2">
+                         <div class="text-sm text-gray-600 flex justify-between">
+                            <span class="font-medium">Subtotal:</span>
+                            <span class="text-indigo-500 font-semibold">₹${subtotal.toFixed(2)}</span>
                         </div>
-                        <div class="text-right">
-                            Discount %: <span id="discount-percent-display-${id}" class="font-semibold text-red-600">${discountPercentage.toFixed(2)}%</span>
+                        <div class="text-sm text-gray-600 flex justify-between">
+                            <span class="font-medium">Discount Amount:</span>
+                            <span id="discount-amount-display-mobile-${id}" class="font-semibold text-red-600">₹${discountAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="text-sm text-gray-600 flex justify-between">
+                            <span class="font-medium">Discount %:</span>
+                            <span id="discount-percent-display-mobile-${id}" class="font-semibold text-red-600">${discountPercentage.toFixed(2)}%</span>
                         </div>
                     </div>
 
-                    <!-- Discounted Price Display (TARGETED UPDATE) -->
-                    <div class="text-right text-lg font-bold pt-2 border-t">
-                        Final Price: <span class="text-green-600" id="final-price-display-${id}">₹${discountedPrice.toFixed(2)}</span>
-                    </div>
                 </div>
             `;
         }
@@ -257,16 +303,17 @@
 
             const format = (value) => value.toFixed(2);
 
-            // Guard against null elements if DOM hasn't fully updated
-            const subtotalEl = document.getElementById(`subtotal-display-${id}`);
-            if (subtotalEl) subtotalEl.textContent = `₹${format(product.subtotal)}`;
+            // Update mobile elements
+            const subtotalMobileEl = document.getElementById(`subtotal-display-mobile-${id}`);
+            if (subtotalMobileEl) subtotalMobileEl.textContent = `₹${format(product.subtotal)}`;
             
-            const discountAmountEl = document.getElementById(`discount-amount-display-${id}`);
-            if (discountAmountEl) discountAmountEl.textContent = `₹${format(product.discountAmount)}`;
+            const discountAmountMobileEl = document.getElementById(`discount-amount-display-mobile-${id}`);
+            if (discountAmountMobileEl) discountAmountMobileEl.textContent = `₹${format(product.discountAmount)}`;
             
-            const discountPercentEl = document.getElementById(`discount-percent-display-${id}`);
-            if (discountPercentEl) discountPercentEl.textContent = `${format(product.discountPercentage)}%`;
+            const discountPercentMobileEl = document.getElementById(`discount-percent-display-mobile-${id}`);
+            if (discountPercentMobileEl) discountPercentMobileEl.textContent = `${format(product.discountPercentage)}%`;
             
+            // Update the main final price (shared between mobile/desktop)
             const finalPriceEl = document.getElementById(`final-price-display-${id}`);
             if (finalPriceEl) finalPriceEl.textContent = `₹${format(product.discountedPrice)}`;
         }
@@ -331,7 +378,7 @@
             let totalSubtotal = 0;
             let totalDiscount = 0;
             let grandTotal = 0;
-            let totalDiscountPercentage = 0; // Initialize
+            let totalDiscountPercentage = 0; 
 
             for (const product of products) {
                 totalSubtotal += product.subtotal;
@@ -564,20 +611,22 @@ NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
             calculateProductTotal(newProduct.id);
             updateUI();
             
-            // --- NEW FOCUS LOGIC ---
+            // --- FOCUS LOGIC ---
             // 1. Scroll to the newly added product
             const newProductEl = document.getElementById(`product-${newProduct.id}`);
             if (newProductEl) {
+                // Ensure scroll is visible
                 newProductEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
             // 2. Find and focus the Unit Price field using the unique class
-            const unitPriceInput = document.querySelector(`.product-unit-price-${newProduct.id}`);
+            // Use querySelector on the specific product element for reliability
+            const unitPriceInput = newProductEl.querySelector(`[data-field="unitPrice"]`);
             if (unitPriceInput) {
                 // Wait briefly for the DOM to settle after innerHTML update
                 setTimeout(() => {
                     unitPriceInput.focus();
-                    unitPriceInput.select(); // Optionally select the current value for easy replacement
+                    unitPriceInput.select(); 
                 }, 50);
             }
         }
