@@ -54,14 +54,23 @@
             <div id="totals-summary" class="pt-6 border-t border-gray-200 mt-6">
                 <h2 class="text-xl font-semibold mb-3 text-gray-700">Summary</h2>
                 <div class="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    
                     <div class="flex justify-between text-base">
                         <span class="text-gray-600">Total Subtotal:</span>
                         <span id="total-subtotal" class="font-medium text-gray-800">₹0.00</span>
                     </div>
+                    
                     <div class="flex justify-between text-base">
                         <span class="text-gray-600">Total Discount:</span>
                         <span id="total-discount" class="font-medium text-red-500">-₹0.00</span>
                     </div>
+
+                    <!-- Total Discount Percentage -->
+                    <div class="flex justify-between text-base">
+                        <span class="text-gray-600">Total Discount Percentage:</span>
+                        <span id="total-discount-percentage" class="font-medium text-red-500">0.00%</span>
+                    </div>
+
                     <div class="flex justify-between text-xl font-bold pt-2 border-t border-gray-200">
                         <span class="text-gray-800">Grand Total:</span>
                         <span id="grand-total" class="text-indigo-600">₹0.00</span>
@@ -76,7 +85,7 @@
                 <button id="share-whatsapp-btn" onclick="shareToWhatsapp()" class="w-full sm:w-1/2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg flex items-center justify-center space-x-2">
                     <!-- WhatsApp Icon (inline SVG for portability) -->
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-white">
-                        <path d="M12.03 2.01c-5.5 0-9.98 4.48-9.98 9.98 0 1.94.57 3.82 1.63 5.42l-1.63 5.96 6.13-1.6c1.55.84 3.32 1.28 5.12 1.28 5.5 0 9.98-4.48 9.98-9.98s-4.48-9.98-9.98-9.98zm4.73 13.92c-.22.56-.99.93-1.42 1.05-.4.11-.84.17-1.29.17-1.35 0-2.65-.5-3.64-1.32-.98-.82-1.74-2.13-1.74-3.48 0-.91.24-1.66.7-2.31.47-.64 1.15-1.07 1.94-1.25.79-.18 1.63-.08 2.37.52.75.6 1.17 1.48 1.17 2.44 0 .22-.04.42-.1.62-.07.2-.18.39-.34.56-.16.17-.35.3-.56.4-.2.11-.42.17-.65.17-.03 0-.05 0-.08 0l-.13-.02c-.52-.08-1.03-.3-1.5-.66-.47-.36-.88-.84-1.23-1.44-.06-.11-.11-.23-.15-.36-.04-.13-.05-.26-.05-.4 0-.32.13-.62.36-.85.23-.23.53-.36.85-.36.24 0 .47.05.69.15.22.1.42.25.58.44.17.2.26.43.26.69 0 .16-.03.32-.08.47-.05.15-.12.29-.2.43-.19.3-.43.56-.7.77l-.02.02c.48.37 1.03.66 1.62.86.6.2 1.24.29 1.9.29.13 0 .26-.01.39-.03.74-.12 1.34-.5 1.8-1.14.47-.64.7-1.4.7-2.28 0-.82-.26-1.5-.77-2.04-.51-.55-1.22-.84-2.12-.84h-1.5c-.32 0-.62-.13-.85-.36-.23-.23-.36-.53-.36-.85 0-.32.13-.62.36-.85.23-.23.53-.36.85-.36h1.5c.9 0 1.76.27 2.47.81.71.54 1.1 1.25 1.1 2.08 0 .5-.08.98-.24 1.44-.16.46-.37.88-.63 1.26z"/>
+                        <path d="M12.03 2.01c-5.5 0-9.98 4.48-9.98 9.98 0 1.94.57 3.82 1.63 5.42l-1.63 5.96 6.13-1.6c1.55.84 3.32 1.28 5.12 1.28 5.5 0 9.98-4.48 9.98-9.98s-4.48-9.98-9.98-9.98zm4.73 13.92c-.22.56-.99.93-1.42 1.05-.4.11-.84.17-1.29.17-1.35 0-2.65-.5-3.64-1.32-.98-.82-1.74-2.13-1.74-3.48 0-.91.24-1.66.7-2.31.47-.64 1.15-1.07 1.94-1.25.79-.18 1.63-.08 2.37.52.75.6 1.17 1.48 1.17 2.44 0 .22-.04.42-.1.62-.07.2-.18.39-.34.56-.16.17-.35.3-.56.4-.2.11-.42.17-.65.17-.03 0-.05 0-.08 0l-.13-.02c-.52-.08-1.03-.3-1.5-.66-.47-.36-.88-.84-1.23-1.44-.06-.11-.11-.23-.15-.36-.04-.13-.05-.26-.05-.4 0-.32.13-.62.36-.85.23-.23.53-.36.85-.36.24 0 .47.05.69.15.22.1.42.25.58.44.17.2.26.43.26.69 0 .16-.03.32-.08.47-.05.15-.12.29-.2.43-.19.3-.43.56-.7.77l-.02.02c.48.37 1.03.66 1.62.86.6.2 1.24.29 1.9.29.13 0 .26-.01.39-.03.74-.12 1.34-.5 1.8-1.14.47-.64.7-1.4.7-2.28 0-.82-.26-1.5-.77-2.04-.51-.55-1.22-.84-2.12-.84h-1.5c-.32 0-.62-.13-.85-.36-.23-.23-.53-.36-.85-.36 0-.32.13-.62.36-.85.23-.23.53-.36.85-.36h1.5c.9 0 1.76.27 2.47.81.71.54 1.1 1.25 1.1 2.08 0 .5-.08.98-.24 1.44-.16.46-.37.88-.63 1.26z"/>
                     </svg>
                     <span>Share via WhatsApp</span>
                 </button>
@@ -106,6 +115,8 @@
         const totalSubtotalEl = document.getElementById('total-subtotal');
         const totalDiscountEl = document.getElementById('total-discount');
         const grandTotalEl = document.getElementById('grand-total');
+        // Element for overall discount percentage
+        const totalDiscountPercentageEl = document.getElementById('total-discount-percentage');
 
         /**
          * Helper to get the correct placeholder based on discount type.
@@ -162,7 +173,7 @@
                                 value="${unitPrice}"
                                 data-id="${id}"
                                 data-field="unitPrice"
-                                class="input-field w-full"
+                                class="input-field w-full product-unit-price-${id}"
                                 oninput="handleInput(event)"
                             />
                         </label>
@@ -309,31 +320,42 @@
 
             // Update display elements without re-rendering inputs
             updateProductDisplay(id);
-            updateGrandTotals();
+            updateGrandTotals(); // Recalculate and update overall summary
         }
 
         /**
          * Calculates and updates the overall totals summary.
-         * @returns {{totalSubtotal: number, totalDiscount: number, grandTotal: number}} The calculated totals.
+         * @returns {{totalSubtotal: number, totalDiscount: number, grandTotal: number, totalDiscountPercentage: number}} The calculated totals.
          */
         function updateGrandTotals() {
             let totalSubtotal = 0;
             let totalDiscount = 0;
             let grandTotal = 0;
+            let totalDiscountPercentage = 0; // Initialize
 
             for (const product of products) {
                 totalSubtotal += product.subtotal;
                 totalDiscount += product.discountAmount;
                 grandTotal += product.discountedPrice;
             }
+            
+            // Calculate total discount percentage
+            if (totalSubtotal > 0) {
+                totalDiscountPercentage = (totalDiscount / totalSubtotal) * 100;
+            }
+
+            // Define format helpers
+            const format = (value) => `₹${value.toFixed(2)}`;
+            const formatPercent = (value) => `${value.toFixed(2)}%`;
 
             // Update DOM elements
-            const format = (value) => `₹${value.toFixed(2)}`;
             totalSubtotalEl.textContent = format(totalSubtotal);
             totalDiscountEl.textContent = `-${format(totalDiscount)}`;
+            totalDiscountPercentageEl.textContent = formatPercent(totalDiscountPercentage);
             grandTotalEl.textContent = format(grandTotal);
 
-            return { totalSubtotal, totalDiscount, grandTotal };
+            // Return calculated totals including the new percentage
+            return { totalSubtotal, totalDiscount, grandTotal, totalDiscountPercentage };
         }
         
         /**
@@ -368,6 +390,7 @@ ${productDetails}
 
 Total Subtotal: *₹${totals.totalSubtotal.toFixed(2)}*
 Total Savings: *-₹${totals.totalDiscount.toFixed(2)}*
+*Overall Discount: ${totals.totalDiscountPercentage.toFixed(2)}%*
 *NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}*`;
 
             return summary.trim();
@@ -405,6 +428,7 @@ ${productDetails}
 
 Total Subtotal: ₹${totals.totalSubtotal.toFixed(2)}
 Total Savings: -₹${totals.totalDiscount.toFixed(2)}
+Overall Discount: ${totals.totalDiscountPercentage.toFixed(2)}%
 NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
 
             return summary.trim();
@@ -540,10 +564,21 @@ NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
             calculateProductTotal(newProduct.id);
             updateUI();
             
-            // Scroll to the newly added product
+            // --- NEW FOCUS LOGIC ---
+            // 1. Scroll to the newly added product
             const newProductEl = document.getElementById(`product-${newProduct.id}`);
             if (newProductEl) {
-                newProductEl.scrollIntoView({ behavior: 'smooth' });
+                newProductEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // 2. Find and focus the Unit Price field using the unique class
+            const unitPriceInput = document.querySelector(`.product-unit-price-${newProduct.id}`);
+            if (unitPriceInput) {
+                // Wait briefly for the DOM to settle after innerHTML update
+                setTimeout(() => {
+                    unitPriceInput.focus();
+                    unitPriceInput.select(); // Optionally select the current value for easy replacement
+                }, 50);
             }
         }
 
