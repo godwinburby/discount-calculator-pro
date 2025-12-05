@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Storage Discount Calculator</title>
+    <title>Discount Calculator Pro</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -90,6 +90,11 @@
                     <button id="save-quote-btn" onclick="saveQuoteLocally()" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         💾 Save Quote
                     </button>
+                    <!-- NEW CLEAR BUTTON -->
+                    <button id="clear-quote-btn" onclick="clearQuote()" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
+                        ✨ Clear Quote
+                    </button>
+                    <!-- END NEW CLEAR BUTTON -->
                     <button id="delete-quote-btn" onclick="deleteQuoteLocally()" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0" disabled>
                         🗑️ Delete Quote
                     </button>
@@ -235,7 +240,7 @@
         }
 
         /**
-         * Generates the HTML string for a single product row. (Markup remains mostly the same)
+         * Generates the HTML string for a single product row.
          */
         function renderProductRow(product) {
             const { id, name, unitPrice, units, discountType, discountValue, subtotal, discountedPrice, discountAmount, discountPercentage } = product;
@@ -617,7 +622,7 @@
                     
                     // Clear the current display
                     products = [];
-                    addProduct(); // Start a new default product
+                    addProduct(true); // Start a new default product with 0 price
                     quoteNameInputEl.value = '';
                     currentQuoteName = '';
                     updateDatalist();
@@ -631,6 +636,18 @@
                 console.error("Local storage error:", e);
             }
         }
+
+        /**
+         * Resets the current quote, clearing the product list and input field.
+         */
+        function clearQuote() {
+            products = [];
+            quoteNameInputEl.value = '';
+            currentQuoteName = '';
+            updateDeleteButtonState('');
+            showMessage("Quote cleared. Ready for a new quote!", 'info');
+            addProduct(true); // Add a default product starting with 0 price
+        }
         
         /**
          * Handles input/change on the quote name field for loading and enabling deletion.
@@ -643,8 +660,6 @@
             
             // If the user selects a saved quote or finishes typing a saved quote name, load it.
             if (isSaved) {
-                // Only load if the content is different to prevent loops/unnecessary DOM refresh
-                // Note: The product object structure might change slightly, so only check if a quote exists.
                 loadQuoteLocally(trimmedName);
             } 
             
@@ -667,7 +682,6 @@
          * Re-renders the entire product list (ONLY used on ADD or REMOVE product or discount type change).
          */
         function updateUI() {
-            // IDs are stable once created. No need to re-map them here.
             productListEl.innerHTML = products.map(renderProductRow).join('');
             
             // Ensure recalculation runs for all products
@@ -694,8 +708,9 @@
             } else if (field === 'discountType') {
                 product.discountValue = 0;
                 product.discountType = value;
+                // Re-render the row to update the discount value placeholder
                 updateUI();
-                return;
+                return; 
             } else {
                 product[field] = parseFloat(value) || 0;
             }
@@ -705,15 +720,19 @@
 
         /**
          * Adds a new product row to the list.
+         * @param {boolean} [startEmpty=false] - If true, sets unit price and discount to 0.
          */
-        function addProduct() {
+        function addProduct(startEmpty = false) {
+            const initialPrice = startEmpty ? 0.00 : 1000.00;
+            const initialDiscount = startEmpty ? 0 : 0;
+            
             const newProduct = {
                 id: nextProductId++,
                 name: `Product ${nextProductId-1}`,
-                unitPrice: 1000.00,
+                unitPrice: initialPrice,
                 units: 1,
                 discountType: 'percentage',
-                discountValue: 0,
+                discountValue: initialDiscount,
                 subtotal: 0,
                 discountAmount: 0,
                 discountPercentage: 0,
@@ -724,11 +743,11 @@
             updateUI();
             
             // Focus logic needs a slight delay to ensure the element exists after DOM update
-            // Fix: Wrapping in setTimeout(..., 0) ensures this runs after the current execution context
             setTimeout(() => {
                 const newProductEl = document.getElementById(`product-${newProduct.id}`);
                 if (newProductEl) {
                     newProductEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Focus on the Unit Price field
                     const unitPriceInput = newProductEl.querySelector(`[data-field="unitPrice"]`);
                     if (unitPriceInput) {
                         unitPriceInput.focus();
@@ -743,7 +762,12 @@
          */
         function removeProduct(id) {
             products = products.filter(p => p.id !== id);
-            updateUI();
+            // If all products are deleted, start a new blank one
+            if (products.length === 0) {
+                addProduct(true);
+            } else {
+                updateUI();
+            }
         }
 
         // --- Copy/Share Functions (Unchanged) ---
@@ -864,7 +888,7 @@ NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
         window.onload = function() {
             updateDatalist(); // Load available quote names
             if (products.length === 0) {
-                 addProduct(); // Add a default product if starting fresh
+                 addProduct(true); // Add a default product starting with 0 price if nothing is present
             }
         }
     </script>
