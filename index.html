@@ -90,11 +90,11 @@
                     <button id="save-quote-btn" onclick="saveQuoteLocally()" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         💾 Save Quote
                     </button>
-                    <!-- NEW CLEAR BUTTON -->
+                    <!-- CLEAR BUTTON -->
                     <button id="clear-quote-btn" onclick="clearQuote()" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         ✨ Clear Quote
                     </button>
-                    <!-- END NEW CLEAR BUTTON -->
+                    <!-- END CLEAR BUTTON -->
                     <button id="delete-quote-btn" onclick="deleteQuoteLocally()" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0" disabled>
                         🗑️ Delete Quote
                     </button>
@@ -579,7 +579,7 @@
             try {
                 const loadedProducts = JSON.parse(data);
                 products = [];
-                nextProductId = 1; // Reset product IDs
+                nextProductId = 1; // Reset product IDs when loading a new quote
 
                 // Map loaded data back into the full product structure
                 loadedProducts.forEach(p => {
@@ -620,13 +620,15 @@
                     
                     showMessage(`Quote "${quoteName}" deleted.`, 'success');
                     
-                    // Clear the current display
+                    // Clear the current display and reset ID counter
                     products = [];
-                    addProduct(true); // Start a new default product with 0 price
+                    nextProductId = 1; // <-- FIX: Reset ID counter
                     quoteNameInputEl.value = '';
                     currentQuoteName = '';
                     updateDatalist();
                     updateDeleteButtonState('');
+
+                    addProduct(true); // Start a new default product with 0 price
 
                 } else {
                     showMessage(`Quote "${quoteName}" not found.`, 'error');
@@ -642,6 +644,7 @@
          */
         function clearQuote() {
             products = [];
+            nextProductId = 1; // <-- FIX: Reset ID counter
             quoteNameInputEl.value = '';
             currentQuoteName = '';
             updateDeleteButtonState('');
@@ -720,11 +723,12 @@
 
         /**
          * Adds a new product row to the list.
-         * @param {boolean} [startEmpty=false] - If true, sets unit price and discount to 0.
+         * @param {boolean} [startEmpty=false] - If true, sets initial name/price to 0 and name to 'Product 1'.
          */
         function addProduct(startEmpty = false) {
-            const initialPrice = startEmpty ? 0.00 : 1000.00;
-            const initialDiscount = startEmpty ? 0 : 0;
+            // FIX: Always set initial price to 0.00 as requested
+            const initialPrice = 0.00; 
+            const initialDiscount = 0;
             
             const newProduct = {
                 id: nextProductId++,
@@ -764,6 +768,7 @@
             products = products.filter(p => p.id !== id);
             // If all products are deleted, start a new blank one
             if (products.length === 0) {
+                nextProductId = 1; // <-- FIX: Reset ID counter when all are gone
                 addProduct(true);
             } else {
                 updateUI();
