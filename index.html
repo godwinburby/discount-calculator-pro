@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Discount Calculator</title>
+    <title>Local Storage Discount Calculator</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -31,7 +31,7 @@
         /* Desktop-specific styles for product row to enable tabular view */
         @media (min-width: 768px) {
             .product-row-desktop-grid {
-                /* NEW 9 Columns: Name, Price, Units, Subtotal, Discount Setup, Discount Amt, Discount %, Final Price, Remove Btn */
+                /* 9 Columns: Name, Price, Units, Subtotal, Discount Setup, Discount Amt, Discount %, Final Price, Remove Btn */
                 grid-template-columns: 1.8fr 1fr 0.7fr 1fr 2fr 1fr 0.8fr 1.2fr auto; 
                 display: grid;
                 align-items: center;
@@ -57,23 +57,55 @@
 </head>
 <body class="p-4 md:p-8 min-h-screen">
 
-    <div class="max-w-7xl mx-auto"> <!-- Increased max-width to fit 9 columns -->
+    <div class="max-w-7xl mx-auto"> 
         <header class="text-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800">Discount Calculator Pro</h1>
-            <p class="text-gray-500">Manage multiple products and complex discounts easily. (Responsive Layout)</p>
+            <p class="text-gray-500">Manage multiple products and complex discounts easily with local quote storage.</p>
         </header>
 
         <main class="bg-white p-6 rounded-xl container-card space-y-6">
+            
+            <!-- Quote Management Section (New) -->
+            <div class="border-b pb-4 mb-4 space-y-3">
+                <h2 class="text-xl font-semibold text-gray-700">Quote Management (Local Storage)</h2>
+                
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <!-- Quote Name Input with Autocomplete -->
+                    <div class="sm:flex-grow">
+                        <input
+                            type="text"
+                            id="quote-name-input"
+                            list="saved-quotes"
+                            placeholder="Type or select a Quote Name..."
+                            class="input-field w-full text-base font-medium"
+                            onchange="handleQuoteNameChange(this.value)"
+                            oninput="handleQuoteNameChange(this.value)"
+                        />
+                        <datalist id="saved-quotes">
+                            <!-- Options populated by JS -->
+                        </datalist>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <button id="save-quote-btn" onclick="saveQuoteLocally()" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
+                        💾 Save Quote
+                    </button>
+                    <button id="delete-quote-btn" onclick="deleteQuoteLocally()" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0" disabled>
+                        🗑️ Delete Quote
+                    </button>
+                </div>
+                <p id="local-storage-message" class="text-sm text-center text-gray-500 hidden">Quote loaded successfully.</p>
+            </div>
 
             <!-- Product List Header (Desktop Only - 9 Columns) -->
             <div class="hidden md:grid md:grid-cols-[1.8fr_1fr_0.7fr_1fr_2fr_1fr_0.8fr_1.2fr_auto] gap-4 mb-2 p-4 border-b border-gray-300 font-semibold text-gray-600">
                 <span>Product Name</span>
                 <span>Unit Price (₹)</span>
                 <span>Units</span>
-                <span class="text-right">Subtotal (₹)</span> <!-- NEW HEADER -->
+                <span class="text-right">Subtotal (₹)</span>
                 <span class="text-center">Discount Setup</span>
-                <span class="text-right">Discount Amt (₹)</span> <!-- NEW HEADER -->
-                <span class="text-right">Discount %</span> <!-- NEW HEADER -->
+                <span class="text-right">Discount Amt (₹)</span>
+                <span class="text-right">Discount %</span>
                 <span class="text-right">Final Price (₹)</span>
                 <span class="w-6"></span> <!-- Spacer for delete button -->
             </div>
@@ -92,6 +124,7 @@
             <!-- Totals Summary Area -->
             <div id="totals-summary" class="pt-6 border-t border-gray-200 mt-6">
                 <h2 class="text-xl font-semibold mb-3 text-gray-700 text-center md:text-left">Summary</h2>
+                <!-- Global Summary remains the same -->
                 <div class="space-y-3 p-4 bg-gray-50 rounded-lg max-w-sm mx-auto"> 
                     
                     <div class="flex justify-between text-base">
@@ -104,7 +137,6 @@
                         <span id="total-discount" class="font-medium text-red-500">-₹0.00</span>
                     </div>
 
-                    <!-- Total Discount Percentage -->
                     <div class="flex justify-between text-base">
                         <span class="text-gray-600">Total Discount Percentage:</span>
                         <span id="total-discount-percentage" class="font-medium text-red-500">0.00%</span>
@@ -129,7 +161,7 @@
                     <span>Share via WhatsApp</span>
                 </button>
 
-                <!-- Copy Text Button (NEW) -->
+                <!-- Copy Text Button -->
                 <button id="copy-quote-btn" onclick="copyToClipboard()" class="w-full sm:w-1/2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg flex items-center justify-center space-x-2">
                     <!-- Copy Icon (inline SVG) -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,6 +170,9 @@
                     <span>Copy Price Quote</span>
                 </button>
             </div>
+
+            <!-- Custom message box for UI feedback -->
+            <div id="message-box" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 p-3 bg-blue-600 text-white rounded-lg shadow-xl hidden z-50 transition-opacity duration-300"></div>
 
         </main>
     </div>
@@ -150,11 +185,42 @@
         let products = [];
         let nextProductId = 1;
 
+        // Quote Management state
+        let currentQuoteName = '';
+
         const productListEl = document.getElementById('product-list');
         const totalSubtotalEl = document.getElementById('total-subtotal');
         const totalDiscountEl = document.getElementById('total-discount');
         const grandTotalEl = document.getElementById('grand-total');
         const totalDiscountPercentageEl = document.getElementById('total-discount-percentage');
+        
+        const quoteNameInputEl = document.getElementById('quote-name-input');
+        const savedQuotesDatalistEl = document.getElementById('saved-quotes');
+        const deleteQuoteBtnEl = document.getElementById('delete-quote-btn');
+        const messageBoxEl = document.getElementById('message-box');
+
+        /**
+         * Shows a temporary message box for user feedback (e.g., successful save).
+         */
+        function showMessage(message, type = 'success') {
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600',
+                info: 'bg-blue-600'
+            };
+            
+            messageBoxEl.textContent = message;
+            messageBoxEl.className = `fixed bottom-4 left-1/2 transform -translate-x-1/2 p-3 text-white rounded-lg shadow-xl z-50 ${colors[type]}`;
+            messageBoxEl.style.opacity = '1';
+            messageBoxEl.style.display = 'block';
+
+            setTimeout(() => {
+                messageBoxEl.style.opacity = '0';
+                setTimeout(() => {
+                    messageBoxEl.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
 
         /**
          * Helper to get the correct placeholder based on discount type.
@@ -169,7 +235,7 @@
         }
 
         /**
-         * Generates the HTML string for a single product row.
+         * Generates the HTML string for a single product row. (Markup remains mostly the same)
          */
         function renderProductRow(product) {
             const { id, name, unitPrice, units, discountType, discountValue, subtotal, discountedPrice, discountAmount, discountPercentage } = product;
@@ -230,14 +296,14 @@
                         </label>
                     </div>
                     
-                    <!-- NEW: 4. Subtotal (Desktop Column 4) -->
+                    <!-- 4. Subtotal (Desktop Column 4) -->
                     <div class="hidden md:block md:col-span-1">
                         <div class="calculated-output text-gray-700" id="subtotal-display-desktop-${id}">
                             ₹${subtotal.toFixed(2)}
                         </div>
                     </div>
 
-                    <!-- 5. Discount Setup (Desktop Column 5 - uses its own grid) -->
+                    <!-- 5. Discount Setup (Desktop Column 5) -->
                     <div class="md:col-span-1 grid grid-cols-2 gap-3">
                         <!-- Discount Type Selector -->
                         <div class="col-span-1">
@@ -270,14 +336,14 @@
                         </div>
                     </div>
                     
-                    <!-- NEW: 6. Discount Amount (Desktop Column 6) -->
+                    <!-- 6. Discount Amount (Desktop Column 6) -->
                     <div class="hidden md:block md:col-span-1">
                         <div class="calculated-output text-red-600" id="discount-amount-display-desktop-${id}">
                             -₹${discountAmount.toFixed(2)}
                         </div>
                     </div>
 
-                    <!-- NEW: 7. Discount Percentage (Desktop Column 7) -->
+                    <!-- 7. Discount Percentage (Desktop Column 7) -->
                     <div class="hidden md:block md:col-span-1">
                         <div class="calculated-output text-red-600" id="discount-percent-display-desktop-${id}">
                             ${discountPercentage.toFixed(2)}%
@@ -342,26 +408,20 @@
             // --- MOBILE Updates ---
             const subtotalMobileEl = document.getElementById(`subtotal-display-mobile-${id}`);
             if (subtotalMobileEl) subtotalMobileEl.textContent = `₹${format(product.subtotal)}`;
-            
             const discountAmountMobileEl = document.getElementById(`discount-amount-display-mobile-${id}`);
             if (discountAmountMobileEl) discountAmountMobileEl.textContent = `₹${format(product.discountAmount)}`;
-            
             const discountPercentMobileEl = document.getElementById(`discount-percent-display-mobile-${id}`);
             if (discountPercentMobileEl) discountPercentMobileEl.textContent = `${format(product.discountPercentage)}%`;
-            
             const finalPriceEl = document.getElementById(`final-price-display-${id}`);
             if (finalPriceEl) finalPriceEl.textContent = `₹${format(product.discountedPrice)}`;
 
-            // --- DESKTOP Updates (NEW) ---
+            // --- DESKTOP Updates ---
             const subtotalDesktopEl = document.getElementById(`subtotal-display-desktop-${id}`);
             if (subtotalDesktopEl) subtotalDesktopEl.textContent = `₹${format(product.subtotal)}`;
-
             const discountAmountDesktopEl = document.getElementById(`discount-amount-display-desktop-${id}`);
             if (discountAmountDesktopEl) discountAmountDesktopEl.textContent = `-₹${format(product.discountAmount)}`;
-
             const discountPercentDesktopEl = document.getElementById(`discount-percent-display-desktop-${id}`);
             if (discountPercentDesktopEl) discountPercentDesktopEl.textContent = `${format(product.discountPercentage)}%`;
-            
             const finalPriceDesktopEl = document.getElementById(`final-price-display-desktop-${id}`);
             if (finalPriceDesktopEl) finalPriceDesktopEl.textContent = `₹${format(product.discountedPrice)}`;
         }
@@ -415,12 +475,11 @@
 
             // Update display elements without re-rendering inputs
             updateProductDisplay(id); 
-            updateGrandTotals(); // Recalculate and update overall summary
+            updateGrandTotals();
         }
 
         /**
          * Calculates and updates the overall totals summary.
-         * @returns {{totalSubtotal: number, totalDiscount: number, grandTotal: number, totalDiscountPercentage: number}} The calculated totals.
          */
         function updateGrandTotals() {
             let totalSubtotal = 0;
@@ -434,31 +493,263 @@
                 grandTotal += product.discountedPrice;
             }
             
-            // Calculate total discount percentage
             if (totalSubtotal > 0) {
                 totalDiscountPercentage = (totalDiscount / totalSubtotal) * 100;
             }
 
-            // Define format helpers
             const format = (value) => `₹${value.toFixed(2)}`;
             const formatPercent = (value) => `${value.toFixed(2)}%`;
 
-            // Update DOM elements
             totalSubtotalEl.textContent = format(totalSubtotal);
             totalDiscountEl.textContent = `-${format(totalDiscount)}`;
             totalDiscountPercentageEl.textContent = formatPercent(totalDiscountPercentage);
             grandTotalEl.textContent = format(grandTotal);
 
-            // Return calculated totals including the new percentage
             return { totalSubtotal, totalDiscount, grandTotal, totalDiscountPercentage };
         }
         
+        // --- Local Storage Functions ---
+
         /**
-         * Generates the summary text with WhatsApp/Markdown formatting (bold/italics).
+         * Retrieves all quote names from local storage and updates the datalist.
          */
+        function updateDatalist() {
+            savedQuotesDatalistEl.innerHTML = '';
+            // Get all keys from localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                // Filter keys to only include quote data (e.g., prefix them)
+                if (key.startsWith('quote_')) {
+                    const quoteName = key.substring(6); // Remove 'quote_' prefix
+                    const option = document.createElement('option');
+                    option.value = quoteName;
+                    savedQuotesDatalistEl.appendChild(option);
+                }
+            }
+            // Update delete button state
+            updateDeleteButtonState(currentQuoteName);
+        }
+
+        /**
+         * Saves the current product list to local storage under the currentQuoteName.
+         */
+        function saveQuoteLocally() {
+            const quoteName = quoteNameInputEl.value.trim();
+            if (!quoteName) {
+                showMessage("Please enter a name for the price quote.", 'error');
+                return;
+            }
+
+            try {
+                // Prepare data for saving: only save essential product properties
+                const dataToSave = products.map(p => ({
+                    name: p.name,
+                    unitPrice: p.unitPrice,
+                    units: p.units,
+                    discountType: p.discountType,
+                    discountValue: p.discountValue,
+                    // The rest (subtotal, finalPrice) are calculated on load
+                }));
+
+                localStorage.setItem(`quote_${quoteName}`, JSON.stringify(dataToSave));
+                
+                currentQuoteName = quoteName;
+                updateDatalist();
+                updateDeleteButtonState(quoteName);
+                showMessage(`Quote "${quoteName}" saved successfully!`, 'success');
+
+            } catch (e) {
+                showMessage("Could not save quote. Local storage might be full or unavailable.", 'error');
+                console.error("Local storage error:", e);
+            }
+        }
+
+        /**
+         * Loads a quote from local storage and replaces the current product list.
+         */
+        function loadQuoteLocally(quoteName) {
+            const data = localStorage.getItem(`quote_${quoteName}`);
+            if (!data) return false;
+
+            try {
+                const loadedProducts = JSON.parse(data);
+                products = [];
+                nextProductId = 1; // Reset product IDs
+
+                // Map loaded data back into the full product structure
+                loadedProducts.forEach(p => {
+                    const newProduct = {
+                        id: nextProductId++,
+                        ...p,
+                        subtotal: 0,
+                        discountAmount: 0,
+                        discountPercentage: 0,
+                        discountedPrice: 0,
+                    };
+                    products.push(newProduct);
+                    // Recalculate totals for the new products
+                    calculateProductTotal(newProduct.id); 
+                });
+                
+                updateUI();
+                showMessage(`Quote "${quoteName}" loaded successfully!`, 'info');
+                return true;
+
+            } catch (e) {
+                showMessage("Error loading quote. Data may be corrupted.", 'error');
+                console.error("Local storage parse error:", e);
+                return false;
+            }
+        }
+
+        /**
+         * Deletes a quote from local storage.
+         */
+        function deleteQuoteLocally() {
+            const quoteName = quoteNameInputEl.value.trim();
+            if (!quoteName) return;
+
+            try {
+                if (localStorage.getItem(`quote_${quoteName}`)) {
+                    localStorage.removeItem(`quote_${quoteName}`);
+                    
+                    showMessage(`Quote "${quoteName}" deleted.`, 'success');
+                    
+                    // Clear the current display
+                    products = [];
+                    addProduct(); // Start a new default product
+                    quoteNameInputEl.value = '';
+                    currentQuoteName = '';
+                    updateDatalist();
+                    updateDeleteButtonState('');
+
+                } else {
+                    showMessage(`Quote "${quoteName}" not found.`, 'error');
+                }
+            } catch (e) {
+                showMessage("Could not delete quote due to storage error.", 'error');
+                console.error("Local storage error:", e);
+            }
+        }
+        
+        /**
+         * Handles input/change on the quote name field for loading and enabling deletion.
+         */
+        function handleQuoteNameChange(name) {
+            const trimmedName = name.trim();
+            currentQuoteName = trimmedName;
+
+            const isSaved = localStorage.getItem(`quote_${trimmedName}`) !== null;
+            
+            // If the user selects a saved quote or finishes typing a saved quote name, load it.
+            if (isSaved) {
+                // Only load if the content is different to prevent loops/unnecessary DOM refresh
+                // Note: The product object structure might change slightly, so only check if a quote exists.
+                loadQuoteLocally(trimmedName);
+            } 
+            
+            updateDeleteButtonState(trimmedName);
+        }
+
+        /**
+         * Toggles the delete button state based on whether the quote name exists locally.
+         */
+        function updateDeleteButtonState(name) {
+            const isSaved = localStorage.getItem(`quote_${name}`) !== null && name.length > 0;
+            deleteQuoteBtnEl.disabled = !isSaved;
+            deleteQuoteBtnEl.classList.toggle('opacity-50', !isSaved);
+            deleteQuoteBtnEl.classList.toggle('hover:bg-red-600', isSaved);
+        }
+
+        // --- Core UI Functions ---
+
+        /**
+         * Re-renders the entire product list (ONLY used on ADD or REMOVE product or discount type change).
+         */
+        function updateUI() {
+            // IDs are stable once created. No need to re-map them here.
+            productListEl.innerHTML = products.map(renderProductRow).join('');
+            
+            // Ensure recalculation runs for all products
+            products.forEach(p => calculateProductTotal(p.id)); 
+            
+            updateGrandTotals();
+        }
+
+        /**
+         * Centralized handler for all product input changes.
+         */
+        function handleInput(event) {
+            const input = event.target;
+            const id = parseInt(input.dataset.id);
+            const field = input.dataset.field;
+            const product = products.find(p => p.id === id);
+
+            if (!product) return;
+
+            let value = input.value;
+
+            if (field === 'name') {
+                product[field] = value;
+            } else if (field === 'discountType') {
+                product.discountValue = 0;
+                product.discountType = value;
+                updateUI();
+                return;
+            } else {
+                product[field] = parseFloat(value) || 0;
+            }
+
+            calculateProductTotal(id);
+        }
+
+        /**
+         * Adds a new product row to the list.
+         */
+        function addProduct() {
+            const newProduct = {
+                id: nextProductId++,
+                name: `Product ${nextProductId-1}`,
+                unitPrice: 1000.00,
+                units: 1,
+                discountType: 'percentage',
+                discountValue: 0,
+                subtotal: 0,
+                discountAmount: 0,
+                discountPercentage: 0,
+                discountedPrice: 0,
+            };
+            products.push(newProduct);
+            calculateProductTotal(newProduct.id);
+            updateUI();
+            
+            // Focus logic needs a slight delay to ensure the element exists after DOM update
+            // Fix: Wrapping in setTimeout(..., 0) ensures this runs after the current execution context
+            setTimeout(() => {
+                const newProductEl = document.getElementById(`product-${newProduct.id}`);
+                if (newProductEl) {
+                    newProductEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const unitPriceInput = newProductEl.querySelector(`[data-field="unitPrice"]`);
+                    if (unitPriceInput) {
+                        unitPriceInput.focus();
+                        unitPriceInput.select(); 
+                    }
+                }
+            }, 0);
+        }
+
+        /**
+         * Removes a product row from the list.
+         */
+        function removeProduct(id) {
+            products = products.filter(p => p.id !== id);
+            updateUI();
+        }
+
+        // --- Copy/Share Functions (Unchanged) ---
+        
         function generateWhatsappSummaryText() {
             const totals = updateGrandTotals(); 
-
             const productDetails = products.map((product, index) => {
                 const formatPrice = (value) => value.toFixed(2);
                 const formatPercent = (value) => value.toFixed(2);
@@ -487,16 +778,11 @@ Total Subtotal: *₹${totals.totalSubtotal.toFixed(2)}*
 Total Savings: *-₹${totals.totalDiscount.toFixed(2)}*
 *Overall Discount: ${totals.totalDiscountPercentage.toFixed(2)}%*
 *NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}*`;
-
             return summary.trim();
         }
 
-        /**
-         * Generates the summary text in PLAIN TEXT format (no markdown).
-         */
         function generatePlainTextQuote() {
             const totals = updateGrandTotals(); 
-
             const productDetails = products.map((product, index) => {
                 const formatPrice = (value) => value.toFixed(2);
                 const formatPercent = (value) => value.toFixed(2);
@@ -525,40 +811,21 @@ Total Subtotal: ₹${totals.totalSubtotal.toFixed(2)}
 Total Savings: -₹${totals.totalDiscount.toFixed(2)}
 Overall Discount: ${totals.totalDiscountPercentage.toFixed(2)}%
 NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
-
             return summary.trim();
         }
 
-
-        /**
-         * Opens the WhatsApp sharing link with the generated summary text.
-         */
         function shareToWhatsapp() {
-            // Uses the formatted text with markdown
-            const summaryText = generateWhatsappSummaryText(); 
-            // URL encode the text for the query parameter
-            const encodedText = encodeURIComponent(summaryText);
-            
-            // Standard WhatsApp share link
+            const encodedText = encodeURIComponent(generateWhatsappSummaryText());
             const whatsappUrl = `https://wa.me/?text=${encodedText}`;
-
             window.open(whatsappUrl, '_blank');
         }
 
-        /**
-         * Copies the generated summary text to the clipboard.
-         */
         function copyToClipboard() {
-            // Uses the clean, plain text summary
             const summaryText = generatePlainTextQuote();
             const copyButton = document.getElementById('copy-quote-btn');
-            const buttonSpan = copyButton.querySelector('span');
 
-            // 1. Create a temporary textarea element
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = summaryText;
-            
-            // Set styles to make it invisible and non-disruptive
             tempTextArea.style.position = 'fixed';
             tempTextArea.style.top = '0';
             tempTextArea.style.left = '0';
@@ -570,129 +837,36 @@ NET PAYABLE AMOUNT: ₹${totals.grandTotal.toFixed(2)}`;
 
             let successful = false;
             try {
-                // 2. Execute the copy command (using document.execCommand for iframe compatibility)
                 successful = document.execCommand('copy');
             } catch (err) {
                 console.error('Copy command failed:', err);
             }
-
-            // 3. Clean up and provide feedback
             document.body.removeChild(tempTextArea);
             
             if (successful) {
-                const originalText = buttonSpan.textContent;
-                
-                // Change icon and text for visual feedback
+                const originalContent = copyButton.innerHTML;
                 copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> <span>Copied!</span>`;
                 copyButton.classList.remove('bg-gray-600', 'hover:bg-gray-700');
                 copyButton.classList.add('bg-blue-500', 'hover:bg-blue-600'); 
 
-                // Revert after 2 seconds
                 setTimeout(() => {
-                    copyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v4a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zm4 0v4a1 1 0 01-1 1H9a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zm4 0v4a1 1 0 01-1 1h-3a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 011 1zM7 16h10" /></svg> <span>Copy Price Quote</span>`;
+                    copyButton.innerHTML = originalContent;
                     copyButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                     copyButton.classList.add('bg-gray-600', 'hover:bg-gray-700');
                 }, 2000);
             } else {
-                // Fallback warning for users if the copy fails
-                console.warn('Unable to automatically copy text. Please select and copy manually.');
+                showMessage('Failed to copy text automatically.', 'error');
             }
         }
 
-
-        /**
-         * Re-renders the entire product list (ONLY used on ADD or REMOVE product or discount type change).
-         */
-        function updateUI() {
-            productListEl.innerHTML = products.map(renderProductRow).join('');
-            updateGrandTotals();
-        }
-
-        /**
-         * Centralized handler for all product input changes.
-         */
-        function handleInput(event) {
-            const input = event.target;
-            const id = parseInt(input.dataset.id);
-            const field = input.dataset.field;
-            const product = products.find(p => p.id === id);
-
-            if (!product) return;
-
-            let value = input.value;
-
-            // Update product data based on field type
-            if (field === 'name') {
-                product[field] = value;
-            } else if (field === 'discountType') {
-                // When discount type changes, reset the discount value and force a full UI update
-                product.discountValue = 0;
-                product.discountType = value;
-                updateUI();
-                return;
-            } else {
-                // Numeric fields
-                product[field] = parseFloat(value) || 0;
-            }
-
-            // Recalculate totals and update display elements (without destroying focus)
-            calculateProductTotal(id);
-        }
-
-        /**
-         * Adds a new product row to the list.
-         */
-        function addProduct() {
-            const newProduct = {
-                id: nextProductId++,
-                name: `Product ${nextProductId-1}`,
-                unitPrice: 1000.00,
-                units: 1,
-                discountType: 'percentage',
-                discountValue: 0,
-                subtotal: 0,
-                discountAmount: 0,
-                discountPercentage: 0,
-                discountedPrice: 0,
-            };
-            products.push(newProduct);
-            calculateProductTotal(newProduct.id);
-            updateUI();
-            
-            // --- FOCUS LOGIC ---
-            // 1. Scroll to the newly added product
-            const newProductEl = document.getElementById(`product-${newProduct.id}`);
-            if (newProductEl) {
-                // Ensure scroll is visible
-                newProductEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-
-            // 2. Find and focus the Unit Price field using the unique class
-            // Use querySelector on the specific product element for reliability
-            const unitPriceInput = newProductEl.querySelector(`[data-field="unitPrice"]`);
-            if (unitPriceInput) {
-                // Wait briefly for the DOM to settle after innerHTML update
-                setTimeout(() => {
-                    unitPriceInput.focus();
-                    unitPriceInput.select(); 
-                }, 50);
-            }
-        }
-
-        /**
-         * Removes a product row from the list.
-         */
-        function removeProduct(id) {
-            products = products.filter(p => p.id !== id);
-            updateUI();
-        }
 
         // --- Initialization ---
-        // Run initialization logic immediately to ensure state is set up.
-        if (products.length === 0) {
-             addProduct();
+        window.onload = function() {
+            updateDatalist(); // Load available quote names
+            if (products.length === 0) {
+                 addProduct(); // Add a default product if starting fresh
+            }
         }
     </script>
 </body>
 </html>
-
