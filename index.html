@@ -1242,7 +1242,7 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
         
         function shareToWhatsapp() {
             const encodedText = encodeURIComponent(generateWhatsappSummaryText());
-            const appLink = `\n\nGenerated with Discount Calculator Pro.`;
+            // const appLink = `\n\nGenerated with Discount Calculator Pro.`;
             const whatsappUrl = `https://wa.me/?text=${encodedText}${encodeURIComponent(appLink)}`;
             window.open(whatsappUrl, '_blank');
         }
@@ -1251,7 +1251,7 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
             const summaryText = generateWhatsappSummaryText(); 
             const copyButton = document.getElementById('copy-quote-btn');
             
-            const fullTextToCopy = summaryText + `\n\nGenerated with Discount Calculator Pro.`;
+            // const fullTextToCopy = summaryText + `\n\nGenerated with Discount Calculator Pro.`;
 
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = fullTextToCopy;
