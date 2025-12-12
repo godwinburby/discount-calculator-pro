@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discount Calculator Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         /* Custom Styles for aesthetics and mobile feel */
         body {
@@ -144,8 +144,12 @@
                         ✨ Clear Quote
                     </button>
                     
-                    <button id="open-history-btn" onclick="openHistoryModal()" class="mobile-action-button w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
+                    <button id="open-history-btn" onclick="openHistoryModal(false)" class="mobile-action-button w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         📚 Quote History
+                    </button>
+                    
+                    <button id="compare-quotes-btn" onclick="openHistoryModal(true)" class="mobile-action-button w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
+                        ⚖️ Compare Quotes
                     </button>
                     
                     <button id="export-history-btn" onclick="exportQuoteHistory()" class="mobile-action-button w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
@@ -300,15 +304,44 @@
             </div>
             
             <input type="text" id="history-search-input" oninput="renderHistoryList()" placeholder="Search quotes by name..." class="input-field w-full mb-4">
-
+            
+            <div id="history-action-row" class="mb-4" style="display: none;">
+                <p id="comparison-selection-count" class="text-sm font-medium text-gray-600 mb-2">Selected: 0 quotes</p>
+                <button id="show-comparison-btn-in-modal" onclick="openComparisonModal()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-xl transition duration-200" disabled>
+                    Show Comparison Grid (Select 2-4)
+                </button>
+            </div>
             <div id="history-list" class="space-y-3 max-h-96 overflow-y-auto">
                 </div>
             
             <p id="history-empty-state" class="text-center text-gray-500 mt-4 hidden">No saved quotes found.</p>
         </div>
     </div>
-
-
+    
+    <div id="comparison-modal" class="modal">
+        <div class="modal-content w-full sm:max-w-7xl max-w-7xl">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-2xl font-bold text-gray-800">⚖️ Quote Comparison Grid</h3>
+                <button onclick="closeComparisonModal()" class="text-gray-500 hover:text-gray-800 p-1 rounded-full hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="comparison-grid-container" class="overflow-x-auto">
+                <div id="comparison-grid" class="min-w-max grid border border-gray-300 rounded-lg shadow-lg">
+                    </div>
+            </div>
+            
+            <p id="comparison-empty-state" class="text-center text-gray-500 mt-4 hidden">Select 2 to 4 quotes from the History to compare.</p>
+            <div class="flex justify-center mt-4">
+                <button onclick="openHistoryModal(true)" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">
+                    Change Quotes to Compare
+                </button>
+            </div>
+        </div>
+    </div>
     <script>
         // Global variables
         let products = [];
@@ -317,6 +350,10 @@
         let currentQuoteId = null; // Used to identify if the current quote is a loaded one
         let currentCurrency = '₹'; // New: Default currency symbol
         let currentMemo = ''; // New: Optional quote memo
+        
+        // NEW GLOBAL STATE FOR COMPARISON
+        let quotesForComparison = []; // Stores IDs of quotes selected for comparison
+        let isSelectingForComparison = false; // Flag for history modal mode
         
         // LocalStorage Key
         const QUOTE_HISTORY_KEY = 'discountCalculatorQuotes';
@@ -339,6 +376,10 @@
         const historyEmptyStateEl = document.getElementById('history-empty-state');
         const saveTextEl = document.getElementById('save-text');
         const historyListEl = document.getElementById('history-list');
+        // NEW DOM ELEMENTS
+        const historyActionRowEl = document.getElementById('history-action-row');
+        const comparisonSelectionCountEl = document.getElementById('comparison-selection-count');
+        const showComparisonBtnInModalEl = document.getElementById('show-comparison-btn-in-modal');
         
         // Header elements that need currency update
         const headerElements = [
@@ -701,7 +742,10 @@
             headerElements.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.textContent = el.textContent.split(' ')[0] + ` (${currentCurrency})`;
+                    // Update header texts only if they contain a symbol hint
+                    if (el.textContent.includes('Price') || el.textContent.includes('Subtotal') || el.textContent.includes('Amt')) {
+                         el.textContent = el.textContent.split('(')[0].trim() + ` (${currentCurrency})`;
+                    }
                 }
             });
             // Also update the placeholders in the dynamic discount options on all existing products
@@ -1160,11 +1204,36 @@
             reader.readAsText(file);
         }
         
-        // --- Quote Management Functions ---
+        // --- Quote Management Functions (Updated for Comparison) ---
 
-        function openHistoryModal() {
+        function updateComparisonControls() {
+            if (comparisonSelectionCountEl) comparisonSelectionCountEl.textContent = `Selected: ${quotesForComparison.length} quotes`;
+            if (showComparisonBtnInModalEl) {
+                if (quotesForComparison.length >= 2) {
+                    showComparisonBtnInModalEl.disabled = false;
+                    showComparisonBtnInModalEl.textContent = `Show Comparison Grid (${quotesForComparison.length} selected)`;
+                } else {
+                    showComparisonBtnInModalEl.disabled = true;
+                    showComparisonBtnInModalEl.textContent = `Show Comparison Grid (Select 2-4)`;
+                }
+            }
+        }
+        
+        function openHistoryModal(forComparison = false) {
+            isSelectingForComparison = forComparison;
             historyModalEl.classList.add('open');
             historyModalEl.style.display = 'flex';
+            
+            const titleEl = historyModalEl.querySelector('h3');
+            
+            if (isSelectingForComparison) {
+                 titleEl.innerHTML = '⚖️ Select Quotes for Comparison (Max 4)';
+                 if(historyActionRowEl) historyActionRowEl.style.display = 'block';
+                 updateComparisonControls(); // Initialize controls state
+            } else {
+                 titleEl.innerHTML = '📚 Quote History (Local)';
+                 if(historyActionRowEl) historyActionRowEl.style.display = 'none';
+            }
             renderHistoryList();
         }
 
@@ -1173,6 +1242,12 @@
             setTimeout(() => {
                 historyModalEl.style.display = 'none';
             }, 300); // Match transition duration
+            
+            // Reset comparison flag if history modal is closed
+            if (isSelectingForComparison) {
+                isSelectingForComparison = false;
+                renderHistoryList(); // Re-render to restore Load/Delete buttons
+            }
         }
         
         function renderHistoryList() {
@@ -1207,14 +1282,19 @@
                 const currencySymbol = quote.currency || '₹';
                 const hasMemo = quote.memo && quote.memo.trim().length > 0;
 
-                // IMPORTANT FIX: Passing only the simple ID string for robustness
-                quoteEl.innerHTML = `
-                    <div class="flex flex-col truncate pr-2">
-                        <span class="font-bold text-gray-800 truncate">${quote.name}</span>
-                        <span class="text-xs text-gray-500">${currencySymbol} | Tax: ${quote.taxRate.toFixed(1)}% ${hasMemo ? '| 📝' : ''}</span>
-                        <span class="text-xs text-gray-500">Updated: ${timeString}</span>
-                    </div>
-                    <div class="flex space-x-2 flex-shrink-0">
+                let actionButtons;
+                
+                if (isSelectingForComparison) {
+                     const isChecked = quotesForComparison.includes(quote.id);
+                     actionButtons = `
+                         <input type="checkbox" data-id="${quote.id}" 
+                             class="h-6 w-6 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer" 
+                             ${isChecked ? 'checked' : ''} 
+                             onclick="toggleQuoteForComparison(this, '${quote.id}')"
+                             >
+                     `;
+                } else {
+                    actionButtons = `
                         <button onclick="loadQuoteFromLocalStorage('${quote.id}')" class="bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold py-1 px-3 rounded-md transition duration-150 shadow-sm">
                             Load
                         </button>
@@ -1223,6 +1303,18 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                         </button>
+                    `;
+                }
+
+                // IMPORTANT FIX: Passing only the simple ID string for robustness
+                quoteEl.innerHTML = `
+                    <div class="flex flex-col truncate pr-2">
+                        <span class="font-bold text-gray-800 truncate">${quote.name}</span>
+                        <span class="text-xs text-gray-500">${currencySymbol} | Tax: ${quote.taxRate.toFixed(1)}% ${hasMemo ? '| 📝' : ''}</span>
+                        <span class="text-xs text-gray-500">Updated: ${timeString}</span>
+                    </div>
+                    <div class="flex space-x-2 flex-shrink-0 items-center">
+                        ${actionButtons}
                     </div>
                 `;
                 historyListEl.appendChild(quoteEl);
@@ -1256,6 +1348,165 @@
                  showMessage("Quote cleared. Ready for a new quote!", 'info');
             }
             addProduct(true); 
+        }
+        
+        // --- NEW COMPARISON LOGIC ---
+
+        function toggleQuoteForComparison(checkbox, id) {
+            if (checkbox.checked) {
+                if (quotesForComparison.length < 4) {
+                    quotesForComparison.push(id);
+                } else {
+                    checkbox.checked = false;
+                    showMessage("You can compare a maximum of 4 quotes.", 'warning');
+                }
+            } else {
+                quotesForComparison = quotesForComparison.filter(qId => qId !== id);
+            }
+            updateComparisonControls();
+        }
+        
+        function openComparisonModal() {
+            if (quotesForComparison.length < 2) {
+                showMessage("Please select at least 2 quotes to compare.", 'error');
+                return;
+            }
+            
+            closeHistoryModal();
+            
+            const comparisonModalEl = document.getElementById('comparison-modal');
+            comparisonModalEl.classList.add('open');
+            comparisonModalEl.style.display = 'flex';
+            
+            renderComparisonGrid();
+        }
+        
+        function closeComparisonModal() {
+            const comparisonModalEl = document.getElementById('comparison-modal');
+            comparisonModalEl.classList.remove('open');
+            setTimeout(() => {
+                comparisonModalEl.style.display = 'none';
+            }, 300);
+        }
+        
+        function getQuoteTotals(quoteData) {
+            let totalSubtotal = 0;
+            let totalDiscount = 0;
+            let netPayableAmount = 0;
+
+            const safeProducts = Array.isArray(quoteData.products) ? quoteData.products : [];
+
+            for (const product of safeProducts) {
+                // Parse numbers safely
+                const unitPrice = parseFloat(product.unitPrice) || 0;
+                const units = parseFloat(product.units) || 0;
+                const discValue = parseFloat(product.discountValue) || 0;
+                
+                // Calculate product subtotal
+                const subtotal = unitPrice * units;
+                let finalPrice = subtotal;
+                let discountAmount = 0;
+
+                switch (product.discountType) {
+                    case 'percentage':
+                        if (discValue > 0) {
+                            discountAmount = Math.min((subtotal * (discValue / 100)), subtotal);
+                            finalPrice = subtotal - discountAmount;
+                        }
+                        break;
+                    case 'amount':
+                        discountAmount = Math.min(discValue, subtotal);
+                        finalPrice = subtotal - discountAmount;
+                        break;
+                    case 'final':
+                        finalPrice = Math.max(0, Math.min(discValue, subtotal));
+                        discountAmount = subtotal - finalPrice;
+                        break;
+                }
+
+                totalSubtotal += subtotal;
+                totalDiscount += discountAmount;
+                netPayableAmount += finalPrice;
+            }
+
+            const taxRate = (parseFloat(quoteData.taxRate) || 0) / 100;
+            const taxAmount = netPayableAmount * taxRate;
+            const grandTotal = netPayableAmount + taxAmount;
+
+            return {
+                totalSubtotal,
+                totalDiscount,
+                netPayableAmount,
+                taxAmount,
+                grandTotal,
+                taxRate: parseFloat(quoteData.taxRate) || 0,
+                currency: quoteData.currency || '₹',
+                name: quoteData.name,
+                id: quoteData.id,
+            };
+        }
+
+        function renderComparisonGrid() {
+            const history = getQuoteHistory();
+            // Filter the history to only include the IDs we selected
+            const quotesToCompare = history.filter(q => quotesForComparison.includes(q.id));
+            const comparisonGridEl = document.getElementById('comparison-grid');
+            const comparisonEmptyEl = document.getElementById('comparison-empty-state');
+            
+            if (quotesToCompare.length < 2) {
+                comparisonGridEl.innerHTML = '';
+                comparisonEmptyEl.classList.remove('hidden');
+                return;
+            }
+            
+            comparisonEmptyEl.classList.add('hidden');
+            
+            // Calculate totals for all selected quotes
+            const calculatedQuotes = quotesToCompare.map(getQuoteTotals);
+            
+            // Determine the grid structure: 1 column for headers + N columns for quotes
+            const columns = 1 + calculatedQuotes.length;
+            // Min-width is set via CSS, but grid-template-columns sets the columns ratio
+            comparisonGridEl.style.gridTemplateColumns = `1.5fr repeat(${calculatedQuotes.length}, 1fr)`;
+            
+            let gridHTML = '';
+            
+            // --- Header Row (Quote Names) ---
+            gridHTML += `<div class="p-3 bg-gray-200 border-r font-extrabold text-left text-gray-700">Metric</div>`;
+            calculatedQuotes.forEach(q => {
+                gridHTML += `<div class="p-3 bg-indigo-100 text-lg font-extrabold text-center border-b border-gray-300">
+                                <span class="block truncate">${q.name}</span>
+                                <span class="text-sm font-semibold text-gray-600">${q.currency} | ${q.taxRate.toFixed(1)}% Tax</span>
+                             </div>`;
+            });
+            
+            // --- Metric Rows ---
+            const metrics = [
+                { label: 'Total Subtotal (Sum of Unit Price * Units)', key: 'totalSubtotal', className: 'text-gray-700' },
+                { label: 'Total Discount/Savings', key: 'totalDiscount', className: 'text-red-500' },
+                { label: 'Net Amount (Before Tax)', key: 'netPayableAmount', className: 'text-indigo-600' },
+                { label: 'Tax Amount', key: 'taxAmount', className: 'text-gray-700' },
+                { label: '🔥 GRAND TOTAL (Final Price)', key: 'grandTotal', className: 'text-2xl font-extrabold text-green-600 py-3' },
+            ];
+            
+            metrics.forEach((metric, index) => {
+                // Metric Label Cell
+                const isLast = index === metrics.length - 1;
+                const baseClass = `p-3 border-t border-gray-300 font-semibold`;
+                gridHTML += `<div class="${baseClass} border-r text-gray-700 ${isLast ? 'bg-green-50/50 font-extrabold' : ''}">${metric.label}</div>`;
+
+                // Quote Data Cells
+                calculatedQuotes.forEach(q => {
+                    const format = (value) => `${q.currency}${value.toFixed(2)}`;
+                    const value = q[metric.key];
+                    
+                    const cellClass = `p-3 border-t border-gray-300 text-center ${metric.className} ${isLast ? 'bg-green-50/50 text-3xl' : 'text-lg'}`;
+                    
+                    gridHTML += `<div class="${cellClass}">${metric.key === 'totalDiscount' ? '-' : ''}${format(value)}</div>`;
+                });
+            });
+
+            comparisonGridEl.innerHTML = gridHTML;
         }
         
         // --- Copy/Share Functions ---
