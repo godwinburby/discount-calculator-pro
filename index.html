@@ -401,6 +401,7 @@
         let currentQuoteId = null; // Used to identify if the current quote is a loaded one
         let currentCurrency = '₹'; // New: Default currency symbol
         let currentMemo = ''; // New: Optional quote memo
+        let _autoFillQuoteName = true; // Auto-fill quote name from first product
         
         // NEW GLOBAL STATE FOR COMPARISON
         let quotesForComparison = []; // Stores IDs of quotes selected for comparison
@@ -873,9 +874,24 @@
             });
         }
         
+        function updateAutoFilledQuoteName() {
+            if (!_autoFillQuoteName || currentQuoteId) return;
+            const firstProduct = products[0];
+            if (!firstProduct || !firstProduct.name.trim()) {
+                currentQuoteName = '';
+                quoteNameInputEl.value = '';
+                return;
+            }
+            const productName = firstProduct.name.trim();
+            const memoTrimmed = currentMemo.trim();
+            currentQuoteName = memoTrimmed ? `${productName} — ${memoTrimmed}` : productName;
+            quoteNameInputEl.value = currentQuoteName;
+        }
+
         // New: Function to handle memo input
         function setCurrentMemo(memo) {
             currentMemo = memo;
+            updateAutoFilledQuoteName();
         }
 
 
@@ -907,6 +923,9 @@
             
             if (field === 'name') {
                 product[field] = value;
+                if (products[0]?.id === id) {
+                    updateAutoFilledQuoteName();
+                }
             } else if (field === 'discountType') {
                 product.discountValue = 0; // Reset discount value on type change
                 product.discountType = value;
@@ -1098,10 +1117,21 @@
                 showMessage("Cannot save: Please fix the invalid product inputs (highlighted in red).", 'error');
                 return;
             }
+
+            // Append memo suffix if quote name already exists in history
+            let history = getQuoteHistory();
+            let finalName = quoteName;
+            const duplicate = history.find(q => q.id !== currentQuoteId && q.name === quoteName);
+            if (duplicate) {
+                const memoTrimmed = currentMemo.trim();
+                finalName = memoTrimmed
+                    ? `${quoteName} — ${memoTrimmed.slice(0, 40)}`
+                    : `${quoteName} (${history.filter(q => q.name === quoteName).length + 1})`;
+            }
             
             // Prepare data for saving (strip out transient calculated values, keep necessary data)
             const dataToSave = {
-                name: quoteName,
+                name: finalName,
                 taxRate: globalTaxRate,
                 currency: currentCurrency, // Save currency
                 memo: currentMemo, // Save memo
@@ -1119,7 +1149,6 @@
                 updatedAt: new Date().toISOString(),
             };
 
-            let history = getQuoteHistory();
             const action = currentQuoteId ? 'updated' : 'saved';
 
             if (currentQuoteId) {
@@ -1139,7 +1168,7 @@
 
             try {
                 localStorage.setItem(QUOTE_HISTORY_KEY, JSON.stringify(history));
-                showMessage(`Quote "${quoteName}" ${action} successfully!`, 'success');
+                showMessage(`Quote "${finalName}" ${action} successfully!`, 'success');
                 
                 // Clear all fields after saving
                 clearQuote(false); 
@@ -1166,6 +1195,7 @@
             currentQuoteId = quoteData.id;
             currentMemo = quoteData.memo || ''; 
             quoteNameInputEl.value = quoteData.name;
+            _autoFillQuoteName = false;
             quoteMemoInputEl.value = currentMemo; 
             
             // Load global tax rate
@@ -1377,6 +1407,7 @@
                  if(historyActionRowEl) historyActionRowEl.style.display = 'none';
             }
             renderHistoryList();
+            setTimeout(() => historySearchInputEl.focus(), 150);
         }
 
         function closeHistoryModal() {
@@ -1466,6 +1497,7 @@
 
         function setCurrentQuoteName(name) {
             currentQuoteName = name.trim();
+            _autoFillQuoteName = false;
         }
 
         function clearQuote(showMsg = true) {
@@ -1473,6 +1505,7 @@
             currentQuoteName = '';
             currentQuoteId = null; 
             currentMemo = ''; // Clear memo
+            _autoFillQuoteName = true;
             quoteNameInputEl.value = '';
             quoteMemoInputEl.value = ''; // Clear memo input
             
@@ -2027,6 +2060,8 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
             products = isCurrentlyEmpty ? newProducts : [...products, ...newProducts];
             newProducts.forEach(p => calculateProductTotal(p.id));
             updateUI();
+
+            updateAutoFilledQuoteName();
         }
 
         // --- Price List Modal ---
@@ -2036,6 +2071,7 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('open'), 10);
             renderPriceListModal();
+            setTimeout(() => document.getElementById('pricelist-search').focus(), 150);
         }
 
         function closePriceListModal() {
