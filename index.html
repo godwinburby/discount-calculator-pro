@@ -374,8 +374,9 @@
             <div id="pricelist-items" class="space-y-2 max-h-96 overflow-y-auto mb-4"></div>
             <p id="pricelist-empty-state" class="text-center text-gray-500 mt-2 hidden">No products in your price list. Upload a CSV or Excel file.</p>
             <div class="flex flex-col sm:flex-row gap-2 pt-3 border-t">
-                <button onclick="loadPriceListToQuote()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">➕ Load Selected to Quote</button>
-                <button onclick="loadAllPriceListToQuote()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">✅ Load All to Quote</button>
+                <button onclick="loadPriceListToQuote()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">➕ Load Selected</button>
+                <button id="load-filtered-btn" onclick="loadFilteredPriceListToQuote()" class="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">🔍 Load Filtered</button>
+                <button onclick="loadAllPriceListToQuote()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">✅ Load All</button>
                 <button id="clear-pricelist-confirm" onclick="clearPriceList()" data-confirming="false" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 ml-auto">🗑️ Clear All</button>
             </div>
         </div>
@@ -477,6 +478,18 @@
                 case 'final': return `Discounted Final Price (${currentCurrency})`;
                 default: return 'Enter value';
             }
+        }
+
+        function matchGlob(text, pattern) {
+            const lowerPattern = pattern.toLowerCase();
+            if (!/[?*[!]/.test(lowerPattern)) {
+                return text.toLowerCase().includes(lowerPattern);
+            }
+            const regex = new RegExp(
+                lowerPattern.replace(/[.+^${}()|\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.'),
+                'i'
+            );
+            return regex.test(text);
         }
         
         // --- Core Calculator Logic ---
@@ -1384,7 +1397,7 @@
             const searchTerm = historySearchInputEl.value.toLowerCase().trim();
             
             const filteredQuotes = allQuotes.filter(quote => 
-                quote.name.toLowerCase().includes(searchTerm)
+                matchGlob(quote.name, searchTerm)
             );
 
             historyListEl.innerHTML = '';
@@ -2037,7 +2050,7 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
             const container = document.getElementById('pricelist-items');
             const emptyState = document.getElementById('pricelist-empty-state');
 
-            const filtered = list.filter(p => p.name.toLowerCase().includes(search));
+            const filtered = list.filter(p => matchGlob(p.name, search));
 
             if (list.length === 0) {
                 container.innerHTML = '';
@@ -2124,6 +2137,19 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
             applyPriceListProducts(list);
             closePriceListModal();
             showMessage(`✅ Loaded all ${list.length} products to quote.`, 'success');
+        }
+
+        function loadFilteredPriceListToQuote() {
+            const list = getSavedPriceList();
+            const search = (document.getElementById('pricelist-search').value || '').toLowerCase();
+            const filtered = list.filter(p => matchGlob(p.name, search));
+            if (filtered.length === 0) {
+                showMessage('No products match the current search filter.', 'warning');
+                return;
+            }
+            applyPriceListProducts(filtered);
+            closePriceListModal();
+            showMessage(`✅ Loaded ${filtered.length} filtered product(s) to quote.`, 'success');
         }
 
         function loadPriceListToQuote() {
