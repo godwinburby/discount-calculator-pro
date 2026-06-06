@@ -126,17 +126,17 @@
             <div class="border-b pb-4 mb-4 space-y-3">
                 <h2 class="text-xl font-bold text-gray-700">Quote Management</h2>
                 
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="sm:flex-grow">
-                        <input
-                            type="text"
-                            id="quote-name-input"
-                            placeholder="Enter Name for this Quote"
-                            class="input-field w-full text-base font-medium"
-                            oninput="setCurrentQuoteName(this.value)"
-                        />
-                    </div>
+                <div>
+                    <input
+                        type="text"
+                        id="quote-name-input"
+                        placeholder="Enter Name for this Quote"
+                        class="input-field w-full text-base font-medium"
+                        oninput="setCurrentQuoteName(this.value)"
+                    />
+                </div>
 
+                <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
                     <button id="save-quote-btn" onclick="saveQuoteToLocalStorage()" class="mobile-action-button w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         <span id="save-text">💾 Save Quote</span>
                     </button>
@@ -151,17 +151,28 @@
                     <button id="compare-quotes-btn" onclick="openHistoryModal(true)" class="mobile-action-button w-full sm:w-auto bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         ⚖️ Compare Quotes
                     </button>
-                    
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
                     <button id="export-history-btn" onclick="exportQuoteHistory()" class="mobile-action-button w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
                         ⬇️ Export All
                     </button>
                     
                     <button id="import-history-btn" onclick="document.getElementById('file-input-import').click()" class="mobile-action-button w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
-                        ⬆️ Import Quotes
+                        ⬆️ Import All
                     </button>
 
                     <input type="file" id="file-input-import" accept=".json" onchange="importQuoteHistory(event)" class="hidden" />
 
+                    <button id="upload-pricelist-btn" onclick="document.getElementById('file-input-pricelist').click()" class="mobile-action-button w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
+                        📋 Upload Price List
+                    </button>
+
+                    <button id="manage-pricelist-btn" onclick="openPriceListModal()" class="mobile-action-button w-full sm:w-auto bg-pink-700 hover:bg-pink-800 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 shadow-md flex-shrink-0">
+                        🗂️ My Price List
+                    </button>
+
+                    <input type="file" id="file-input-pricelist" accept=".csv,.xlsx,.xls" onchange="importPriceList(event)" class="hidden" />
                 </div>
                 
                 <div class="mt-4">
@@ -350,6 +361,37 @@
             </div>
         </div>
     </div>
+    <!-- Price List Modal -->
+    <div id="pricelist-modal" class="modal">
+        <div class="modal-content w-full sm:max-w-2xl">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-2xl font-bold text-gray-800">🗂️ My Price List</h3>
+                <button onclick="closePriceListModal()" class="text-gray-500 hover:text-gray-800 p-1 rounded-full hover:bg-gray-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <input type="text" id="pricelist-search" oninput="renderPriceListModal()" placeholder="Search products..." class="input-field w-full mb-3" />
+            <div id="pricelist-items" class="space-y-2 max-h-96 overflow-y-auto mb-4"></div>
+            <p id="pricelist-empty-state" class="text-center text-gray-500 mt-2 hidden">No products in your price list. Upload a CSV or Excel file.</p>
+            <div class="flex flex-col sm:flex-row gap-2 pt-3 border-t">
+                <button onclick="loadPriceListToQuote()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">➕ Load Selected to Quote</button>
+                <button onclick="loadAllPriceListToQuote()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">✅ Load All to Quote</button>
+                <button id="clear-pricelist-confirm" onclick="clearPriceList()" data-confirming="false" class="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200 ml-auto">🗑️ Clear All</button>
+            </div>
+        </div>
+    </div>
+    <!-- Price List Import Choice Modal -->
+    <div id="pricelist-import-choice-modal" class="modal">
+        <div class="modal-content w-full sm:max-w-sm">
+            <h3 class="text-lg font-bold text-gray-800 mb-2">📋 Import Price List</h3>
+            <p id="pricelist-choice-msg" class="text-sm text-gray-600 mb-5"></p>
+            <div class="flex flex-col gap-3">
+                <button onclick="confirmPriceListAdd()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">➕ Add to existing list</button>
+                <button onclick="confirmPriceListReplace()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-xl transition duration-200">🔄 Replace entire list</button>
+                <button onclick="closePriceListImportChoice()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-xl transition duration-200">Cancel</button>
+            </div>
+        </div>
+    </div>
     <script>
         // Global variables
         let products = [];
@@ -365,6 +407,8 @@
         
         // LocalStorage Key
         const QUOTE_HISTORY_KEY = 'discountCalculatorQuotes';
+        let _pendingPriceListImport = null; // holds { parsed, existing } during import choice
+        const PRICE_LIST_KEY = 'discountCalculatorPriceList';
 
         // DOM Elements
         const productListEl = document.getElementById('product-list');
@@ -602,6 +646,42 @@
                         </div>
                     </div>
 
+                    <!-- Deduction sub-row: spans full width below the grid -->
+                    <div class="col-span-full border-t border-dashed border-gray-200 pt-2 mt-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <label class="flex items-center gap-1 text-sm text-gray-500 cursor-pointer select-none">
+                                <input type="checkbox"
+                                    class="accent-orange-500 w-4 h-4"
+                                    ${product.deductionEnabled ? 'checked' : ''}
+                                    onchange="toggleDeduction('${id}', this.checked)"
+                                    onclick="handleDragClick(event)"
+                                />
+                                <span class="font-medium text-orange-600">Deduction</span>
+                            </label>
+                            <input type="text"
+                                placeholder="Label (e.g. Less: Charger)"
+                                value="${product.deductionLabel || 'Less: Charger'}"
+                                class="input-field text-sm flex-grow min-w-0 ${product.deductionEnabled ? '' : 'opacity-40 pointer-events-none'}"
+                                style="max-width:220px"
+                                onchange="updateDeductionLabel('${id}', this.value)"
+                                onclick="handleDragClick(event)"
+                                ${product.deductionEnabled ? '' : 'disabled'}
+                            />
+                            <input type="number"
+                                min="0" step="0.01"
+                                placeholder="Amount"
+                                value="${product.deductionAmount || 0}"
+                                class="input-field text-sm w-28 text-right ${product.deductionEnabled ? '' : 'opacity-40 pointer-events-none'}"
+                                onchange="updateDeductionAmount('${id}', this.value)"
+                                onclick="handleDragClick(event)"
+                                ${product.deductionEnabled ? '' : 'disabled'}
+                            />
+                            ${product.deductionEnabled && product.deductionAmount > 0
+                                ? `<span class="text-sm font-semibold text-orange-600 ml-auto">-${format(product.deductionAmount)}</span>`
+                                : ''}
+                        </div>
+                    </div>
+
                 </div>
             `;
         }
@@ -661,6 +741,11 @@
                     finalPrice = Math.max(0, Math.min(discValue, subtotal));
                     product.discountAmount = subtotal - finalPrice;
                     break;
+            }
+
+            // Apply deduction after discount
+            if (product.deductionEnabled && product.deductionAmount > 0) {
+                finalPrice = Math.max(0, finalPrice - product.deductionAmount);
             }
 
             product.discountedPrice = finalPrice;
@@ -874,7 +959,10 @@
                 discountAmount: 0,
                 discountPercentage: 0,
                 discountedPrice: 0,
-                isValid: true, 
+                isValid: true,
+                deductionEnabled: false,
+                deductionLabel: 'Less: Charger',
+                deductionAmount: 0,
             };
             products.push(newProduct);
             calculateProductTotal(newProduct.id);
@@ -1011,6 +1099,9 @@
                     units: p.units,
                     discountType: p.discountType,
                     discountValue: p.discountValue,
+                    deductionEnabled: p.deductionEnabled || false,
+                    deductionLabel: p.deductionLabel || 'Less: Charger',
+                    deductionAmount: p.deductionAmount || 0,
                 })),
                 updatedAt: new Date().toISOString(),
             };
@@ -1125,31 +1216,38 @@
          */
         function exportQuoteHistory() {
             const history = getQuoteHistory();
-            if (history.length === 0) {
-                showMessage("No quotes saved to export.", 'warning');
+            const priceList = getSavedPriceList();
+
+            if (history.length === 0 && priceList.length === 0) {
+                showMessage("Nothing to export — no quotes or price list saved.", 'warning');
                 return;
             }
 
-            const json = JSON.stringify(history, null, 2);
+            const exportData = {
+                _version: 1,
+                _exportedAt: new Date().toISOString(),
+                quotes: history,
+                priceList: priceList,
+            };
+
+            const json = JSON.stringify(exportData, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
-            // Create a temporary link element for the download
             const a = document.createElement('a');
             a.href = url;
             const date = new Date().toISOString().slice(0, 10);
-            a.download = `DiscountPro_QuoteHistory_${date}.json`;
-            
+            a.download = `DiscountPro_Backup_${date}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url); // Clean up
-            
-            showMessage("Quote History exported successfully!", 'success');
+            URL.revokeObjectURL(url);
+
+            showMessage(`Exported ${history.length} quote(s) and ${priceList.length} price list item(s).`, 'success');
         }
 
         /**
-         * Handles the file selection and import process for quote history.
+         * Handles the file selection and import process for full backup (quotes + price list).
+         * Also supports legacy files that are plain arrays of quotes.
          */
         function importQuoteHistory(event) {
             const file = event.target.files[0];
@@ -1158,52 +1256,75 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const importedQuotes = JSON.parse(e.target.result);
-                    
-                    if (!Array.isArray(importedQuotes)) {
-                        showMessage("Import failed: File content is not a valid list of quotes.", 'error');
+                    const parsed = JSON.parse(e.target.result);
+
+                    // --- Detect format ---
+                    let importedQuotes = [];
+                    let importedPriceList = [];
+
+                    if (Array.isArray(parsed)) {
+                        // Legacy format: plain array of quotes
+                        importedQuotes = parsed;
+                    } else if (parsed && parsed._version === 1) {
+                        // New format: full backup object
+                        importedQuotes = Array.isArray(parsed.quotes) ? parsed.quotes : [];
+                        importedPriceList = Array.isArray(parsed.priceList) ? parsed.priceList : [];
+                    } else {
+                        showMessage("Import failed: Unrecognised file format.", 'error');
+                        event.target.value = null;
                         return;
                     }
 
+                    // --- Merge quotes ---
                     let existingHistory = getQuoteHistory();
-                    let importedCount = 0;
-                    
-                    // Use a Map to track unique IDs to prevent accidental overwrites/duplicates
                     const uniqueQuotesMap = new Map();
-                    
-                    // Populate map with existing quotes
-                    existingHistory.forEach(q => {
-                        uniqueQuotesMap.set(q.id, q);
-                    });
+                    existingHistory.forEach(q => uniqueQuotesMap.set(q.id, q));
+                    let importedQuoteCount = 0;
 
                     importedQuotes.forEach(newQuote => {
-                        // Ensure the quote has a unique ID for the merge
                         if (!newQuote.id || uniqueQuotesMap.has(newQuote.id)) {
-                             // Assign a new ID to prevent clashes with existing quotes
-                             newQuote.id = crypto.randomUUID(); 
-                             newQuote.createdAt = newQuote.createdAt || new Date().toISOString();
-                             newQuote.updatedAt = newQuote.updatedAt || new Date().toISOString();
+                            newQuote.id = crypto.randomUUID();
+                            newQuote.createdAt = newQuote.createdAt || new Date().toISOString();
+                            newQuote.updatedAt = newQuote.updatedAt || new Date().toISOString();
                         }
-                        // Add or overwrite the quote in the map
                         uniqueQuotesMap.set(newQuote.id, newQuote);
-                        importedCount++;
+                        importedQuoteCount++;
                     });
-                    
-                    let finalHistory = Array.from(uniqueQuotesMap.values());
-                    
-                    // Sort history by updated date, descending
-                    finalHistory.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
+                    let finalHistory = Array.from(uniqueQuotesMap.values());
+                    finalHistory.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
                     localStorage.setItem(QUOTE_HISTORY_KEY, JSON.stringify(finalHistory));
-                    
-                    showMessage(`Successfully imported ${importedCount} quote(s). Total quotes: ${finalHistory.length}`, 'success');
-                    
-                    // Clear the file input value to allow importing the same file again
-                    event.target.value = null; 
-                    renderHistoryList(); // Refresh the list if the modal is open
+
+                    // --- Merge price list (deduplicate by name) ---
+                    let importedPriceCount = 0;
+                    if (importedPriceList.length > 0) {
+                        const existingPriceList = getSavedPriceList();
+                        const existingNames = new Set(existingPriceList.map(p => (p.name || '').toLowerCase().trim()));
+                        const validImported = importedPriceList.filter(p => p.name && p.name.trim());
+                        const toAdd = validImported
+                            .filter(p => !existingNames.has(p.name.toLowerCase().trim()))
+                            .map(p => ({
+                                id: crypto.randomUUID(),
+                                name: p.name.trim(),
+                                unitPrice: parseFloat(p.unitPrice) || 0,
+                            }));
+                        savePriceListToStorage([...existingPriceList, ...toAdd]);
+                        importedPriceCount = toAdd.length;
+                        const skipped = validImported.length - toAdd.length;
+                        if (skipped > 0) showMessage(`Skipped ${skipped} duplicate price list item(s).`, 'info');
+                    }
+
+                    // --- Done ---
+                    const parts = [];
+                    if (importedQuoteCount > 0) parts.push(`${importedQuoteCount} quote(s)`);
+                    if (importedPriceCount > 0) parts.push(`${importedPriceCount} price list item(s)`);
+                    showMessage(`Imported: ${parts.join(' and ')}.`, 'success');
+
+                    event.target.value = null;
+                    renderHistoryList();
 
                 } catch (e) {
-                    showMessage("Import failed: Error parsing JSON file.", 'error');
+                    showMessage("Import failed: Could not parse file.", 'error');
                     console.error("Import Error:", e);
                     event.target.value = null;
                 }
@@ -1534,12 +1655,16 @@
                 const productNumber = index + 1;
                 const name = product.name || 'Untitled Product';
 
+                const deductionLabel = (product.deductionLabel && product.deductionLabel.trim()) ? product.deductionLabel.trim() : 'Less: Deduction';
+                const deductionLine = product.deductionEnabled && product.deductionAmount > 0
+                    ? `\n    _${deductionLabel}:_ -${format(product.deductionAmount)}`
+                    : '';
                 return `
 *${productNumber}. ${name}*
     Unit Price: ${format(product.unitPrice)}
     Units: ${product.units}
     Subtotal: ${format(product.subtotal)}
-    _Discount Applied:_ -${format(product.discountAmount)} (${product.discountPercentage.toFixed(2)}%)
+    _Discount Applied:_ -${format(product.discountAmount)} (${product.discountPercentage.toFixed(2)}%)${deductionLine}
     *Product Final Price: ${format(product.discountedPrice)}*`; 
             }).join('\n');
 
@@ -1663,6 +1788,358 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
             document.body.removeChild(tempInput);
         }
 
+        // --- Deduction helpers ---
+
+        function toggleDeduction(id, enabled) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            product.deductionEnabled = enabled;
+            calculateProductTotal(id);
+            updateGrandTotals();
+            updateUI();
+        }
+
+        function updateDeductionLabel(id, label) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            product.deductionLabel = label.trim() || 'Less: Charger';
+        }
+
+        function updateDeductionAmount(id, value) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            product.deductionAmount = parseFloat(value) || 0;
+            calculateProductTotal(id);
+            updateGrandTotals();
+            updateUI();
+        }
+
+        // --- Price List Import choice helpers ---
+
+        function showPriceListImportChoice(newCount, existingCount) {
+            const modal = document.getElementById('pricelist-import-choice-modal');
+            document.getElementById('pricelist-choice-msg').textContent =
+                `You have ${existingCount} product(s) already saved. What do you want to do with the ${newCount} new product(s)?`;
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('open'), 10);
+        }
+
+        function closePriceListImportChoice() {
+            const modal = document.getElementById('pricelist-import-choice-modal');
+            modal.classList.remove('open');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+            _pendingPriceListImport = null;
+        }
+
+        function confirmPriceListAdd() {
+            if (!_pendingPriceListImport) return;
+            const { parsed, existing } = _pendingPriceListImport;
+            const existingNames = new Set(existing.map(p => (p.name || '').toLowerCase().trim()));
+            const toAdd = parsed.filter(p => !existingNames.has(p.name.toLowerCase().trim()));
+            const skipped = parsed.length - toAdd.length;
+            savePriceListToStorage([...existing, ...toAdd]);
+            const msg = skipped > 0
+                ? `✅ Added ${toAdd.length} product(s). Skipped ${skipped} duplicate(s).`
+                : `✅ Added ${toAdd.length} product(s) to price list.`;
+            showMessage(msg, 'success');
+            closePriceListImportChoice();
+        }
+
+        function confirmPriceListReplace() {
+            if (!_pendingPriceListImport) return;
+            const { parsed } = _pendingPriceListImport;
+            savePriceListToStorage(parsed);
+            showMessage(`✅ Price list replaced with ${parsed.length} product(s).`, 'success');
+            closePriceListImportChoice();
+        }
+
+        // --- Price List Import & Management ---
+
+        // Load saved price list from localStorage
+        function getSavedPriceList() {
+            try {
+                return JSON.parse(localStorage.getItem(PRICE_LIST_KEY)) || [];
+            } catch { return []; }
+        }
+
+        function savePriceListToStorage(list) {
+            // Ensure every item has a stable id before saving
+            const normalised = list.map(p => ({
+                id: p.id || crypto.randomUUID(),
+                name: p.name,
+                unitPrice: parseFloat(p.unitPrice) || 0,
+            }));
+            localStorage.setItem(PRICE_LIST_KEY, JSON.stringify(normalised));
+        }
+
+        function importPriceList(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const existing = getSavedPriceList();
+
+            const proceed = (parsedRaw) => {
+                // Deduplicate within the file itself first (case-insensitive name)
+                const seenNames = new Set();
+                const parsed = parsedRaw.filter(p => {
+                    const key = p.name.toLowerCase().trim();
+                    if (seenNames.has(key)) return false;
+                    seenNames.add(key);
+                    return true;
+                });
+                const inFileDupes = parsedRaw.length - parsed.length;
+                if (inFileDupes > 0) showMessage(`Skipped ${inFileDupes} duplicate(s) found inside the file.`, 'info');
+
+                if (existing.length === 0) {
+                    savePriceListToStorage(parsed);
+                    showMessage(`✅ ${parsed.length} product(s) saved to price list. Open "My Price List" to load them.`, 'success');
+                } else {
+                    // Store pending items and show inline choice in modal
+                    _pendingPriceListImport = { parsed, existing };
+                    showPriceListImportChoice(parsed.length, existing.length);
+                }
+            };
+
+            if (ext === 'csv') {
+                const reader = new FileReader();
+                reader.onload = function(e) { parsePriceListCSV(e.target.result, proceed); };
+                reader.readAsText(file);
+            } else if (ext === 'xlsx' || ext === 'xls') {
+                const reader = new FileReader();
+                reader.onload = function(e) { parsePriceListXLSX(e.target.result, proceed); };
+                reader.readAsArrayBuffer(file);
+            } else {
+                showMessage('Unsupported file type. Use .csv or .xlsx', 'error');
+            }
+
+            event.target.value = '';
+        }
+
+        function parsePriceListCSV(text, callback) {
+            const lines = text.trim().split(/\r?\n/);
+            if (lines.length < 2) {
+                showMessage('CSV must have a header row and at least one product.', 'error');
+                return;
+            }
+
+            const header = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+            const nameIdx = header.findIndex(h => h.includes('name') || h.includes('product') || h.includes('item') || h.includes('description'));
+            const priceIdx = header.findIndex(h => h.includes('price') || h.includes('rate') || h.includes('mrp') || h.includes('amount') || h.includes('cost'));
+
+            if (nameIdx === -1 || priceIdx === -1) {
+                showMessage('Could not find Name/Price columns. Use headers like "Product Name" and "Unit Price".', 'error');
+                return;
+            }
+
+            const parsed = [];
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const cols = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || line.split(',');
+                const name = (cols[nameIdx] || '').replace(/^"|"$/g, '').trim();
+                const rawPrice = (cols[priceIdx] || '').replace(/^"|"$/g, '').replace(/[^\d.]/g, '').trim();
+                if (!name) continue;
+                parsed.push({ id: crypto.randomUUID(), name, unitPrice: parseFloat(rawPrice) || 0 });
+            }
+
+            if (parsed.length === 0) { showMessage('No valid products found.', 'warning'); return; }
+            callback(parsed);
+        }
+
+        function parsePriceListXLSX(arrayBuffer, callback) {
+            const doProcess = () => {
+                try {
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    if (rows.length === 0) { showMessage('Excel sheet appears to be empty.', 'error'); return; }
+
+                    const keys = Object.keys(rows[0]);
+                    const nameKey = keys.find(k => /name|product|item|description/i.test(k));
+                    const priceKey = keys.find(k => /price|rate|mrp|amount|cost/i.test(k));
+
+                    if (!nameKey || !priceKey) {
+                        showMessage('Could not find Name/Price columns.', 'error');
+                        return;
+                    }
+
+                    const parsed = rows
+                        .filter(row => String(row[nameKey]).trim())
+                        .map(row => ({
+                            id: crypto.randomUUID(),
+                            name: String(row[nameKey]).trim(),
+                            unitPrice: parseFloat(String(row[priceKey]).replace(/[^\d.]/g, '')) || 0,
+                        }));
+
+                    if (parsed.length === 0) { showMessage('No valid products found.', 'warning'); return; }
+                    callback(parsed);
+                } catch (err) {
+                    showMessage('Failed to read Excel file.', 'error');
+                    console.error(err);
+                }
+            };
+
+            if (typeof XLSX === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+                script.onload = doProcess;
+                script.onerror = () => showMessage('Failed to load Excel parser. Check internet.', 'error');
+                document.head.appendChild(script);
+            } else {
+                doProcess();
+            }
+        }
+
+        function applyPriceListProducts(items) {
+            if (!items || items.length === 0) return;
+
+            const newProducts = items.map(item => ({
+                id: crypto.randomUUID(),
+                name: item.name,
+                unitPrice: item.unitPrice,
+                units: 1,
+                discountType: 'percentage',
+                discountValue: 0,
+                subtotal: 0,
+                discountAmount: 0,
+                discountPercentage: 0,
+                discountedPrice: 0,
+                isValid: true,
+            }));
+
+            const isCurrentlyEmpty = products.length === 0 ||
+                (products.length === 1 && !products[0].name && products[0].unitPrice === 0);
+
+            products = isCurrentlyEmpty ? newProducts : [...products, ...newProducts];
+            newProducts.forEach(p => calculateProductTotal(p.id));
+            updateUI();
+        }
+
+        // --- Price List Modal ---
+
+        function openPriceListModal() {
+            const modal = document.getElementById('pricelist-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('open'), 10);
+            renderPriceListModal();
+        }
+
+        function closePriceListModal() {
+            const modal = document.getElementById('pricelist-modal');
+            modal.classList.remove('open');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        function renderPriceListModal() {
+            const list = getSavedPriceList();
+            const search = (document.getElementById('pricelist-search').value || '').toLowerCase();
+            const container = document.getElementById('pricelist-items');
+            const emptyState = document.getElementById('pricelist-empty-state');
+
+            const filtered = list.filter(p => p.name.toLowerCase().includes(search));
+
+            if (list.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            container.innerHTML = filtered.map(item => `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <input type="checkbox" class="pricelist-checkbox w-4 h-4 accent-indigo-600 flex-shrink-0" data-id="${item.id}" />
+                    <div class="flex-grow min-w-0">
+                        <div class="font-semibold text-gray-800 truncate">${item.name}</div>
+                        <div class="text-sm text-indigo-600 font-bold">${currentCurrency}${item.unitPrice.toFixed(2)}</div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <input type="number" min="0" step="0.01"
+                            value="${item.unitPrice}"
+                            onchange="updatePriceListItemPrice('${item.id}', this.value)"
+                            class="input-field w-28 text-sm text-right"
+                            title="Edit price"
+                        />
+                        <button onclick="deletePriceListItem('${item.id}')" class="text-red-400 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            if (filtered.length === 0 && search) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-4">No matching products.</p>';
+            }
+        }
+
+        function deletePriceListItem(id) {
+            let list = getSavedPriceList().filter(p => p.id !== id);
+            savePriceListToStorage(list);
+            renderPriceListModal();
+            showMessage('Product removed from price list.', 'info');
+        }
+
+        function updatePriceListItemPrice(id, newPrice) {
+            let list = getSavedPriceList();
+            const item = list.find(p => p.id === id);
+            if (item) {
+                item.unitPrice = parseFloat(newPrice) || 0;
+                savePriceListToStorage(list);
+                showMessage('Price updated.', 'success');
+                renderPriceListModal();
+            }
+        }
+
+        function clearPriceList() {
+            const confirmBtn = document.getElementById('clear-pricelist-confirm');
+            if (confirmBtn.dataset.confirming === 'true') {
+                localStorage.removeItem(PRICE_LIST_KEY);
+                confirmBtn.dataset.confirming = 'false';
+                confirmBtn.textContent = '🗑️ Clear All';
+                confirmBtn.classList.remove('bg-red-700', 'hover:bg-red-800');
+                confirmBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                renderPriceListModal();
+                showMessage('Price list cleared.', 'info');
+            } else {
+                confirmBtn.dataset.confirming = 'true';
+                confirmBtn.textContent = '⚠️ Tap again to confirm';
+                confirmBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                confirmBtn.classList.add('bg-red-700', 'hover:bg-red-800');
+                setTimeout(() => {
+                    if (confirmBtn.dataset.confirming === 'true') {
+                        confirmBtn.dataset.confirming = 'false';
+                        confirmBtn.textContent = '🗑️ Clear All';
+                        confirmBtn.classList.remove('bg-red-700', 'hover:bg-red-800');
+                        confirmBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                    }
+                }, 3000);
+            }
+        }
+
+        function loadAllPriceListToQuote() {
+            const list = getSavedPriceList();
+            if (list.length === 0) { showMessage('Price list is empty.', 'warning'); return; }
+            applyPriceListProducts(list);
+            closePriceListModal();
+            showMessage(`✅ Loaded all ${list.length} products to quote.`, 'success');
+        }
+
+        function loadPriceListToQuote() {
+            const checkboxes = document.querySelectorAll('.pricelist-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showMessage('Tick the products you want to load first.', 'warning');
+                return;
+            }
+            const selectedIds = Array.from(checkboxes).map(cb => cb.dataset.id);
+            const list = getSavedPriceList();
+            const selected = list.filter(p => selectedIds.includes(p.id));
+            applyPriceListProducts(selected);
+            closePriceListModal();
+            showMessage(`✅ Loaded ${selected.length} product(s) to quote.`, 'success');
+        }
+
         // --- Initialization ---
         
         window.onload = function() {
@@ -1698,6 +2175,9 @@ Tax Applied (${totals.globalTaxRate.toFixed(1)}%): *+${format(totals.taxAmount)}
                             discountPercentage: 0,
                             discountedPrice: 0,
                             isValid: true,
+                            deductionEnabled: p.deductionEnabled || false,
+                            deductionLabel: p.deductionLabel || 'Less: Charger',
+                            deductionAmount: parseFloat(p.deductionAmount) || 0,
                         }));
                         
                         updateUI();
